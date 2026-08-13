@@ -181,7 +181,7 @@
     .class-pct{min-width:68px;padding:7px 9px}
     .class-pct strong{font-size:19px}
     .thresholds{gap:5px;margin-top:6px}
-    .threshold{padding:4px 7px;font-size:10px}
+    .threshold{padding:4px 8px;font-size:10px}
     .state-btn{min-width:112px;padding:9px 11px}
 
     @media(max-width:850px){
@@ -208,9 +208,12 @@
       <h1>Mi asistencia</h1>
       <div class="subtitle">Tus clases de la semana, con asistencia editable en un toque.</div>
     </div>
-    <div class="actions"><span id="syncStatus" class="sync-status">Sincronizado</span><button class="secondary" onclick="logout()">Cerrar sesión</button>
+    <div class="actions">
+      <span id="syncStatus" class="sync-status" style="display:none"></span>
+      <button class="secondary" onclick="showTab('settings')">Configuración</button>
       <button class="secondary" onclick="exportData()">Exportar</button>
       <label class="file-label">Importar<input id="importFile" type="file" accept=".json,application/json" onchange="importData(event)"></label>
+      <button class="secondary" onclick="logout()">Cerrar sesión</button>
     </div>
   </header>
 
@@ -352,7 +355,13 @@ let detailSubjectId = null;
 const $ = id => document.getElementById(id);
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())}
 function persist(){localStorage.setItem(KEY,JSON.stringify(state));renderAll();queueCloudSave()}
-function setSyncStatus(t){const e=$("syncStatus");if(e)e.textContent=t}
+function setSyncStatus(t){
+  const e=$("syncStatus");
+  if(!e)return;
+  const isError=String(t||"").toLowerCase().includes("error");
+  e.textContent=isError?t:"";
+  e.style.display=isError?"inline":"none";
+}
 function queueCloudSave(){if(!currentUser)return;setSyncStatus("Guardando…");clearTimeout(saveTimer);saveTimer=setTimeout(saveCloudState,300)}
 async function saveCloudState(){if(!currentUser)return;const {error}=await sb.from("attendance_app_state").upsert({user_id:currentUser.id,state,updated_at:new Date().toISOString()},{onConflict:"user_id"});setSyncStatus(error?"Error al sincronizar":"Sincronizado");if(error)console.error(error)}
 async function loadCloudState(){const {data,error}=await sb.from("attendance_app_state").select("state").eq("user_id",currentUser.id).maybeSingle();if(error){console.error(error);setSyncStatus("Error al cargar");return}if(data?.state){state=data.state;localStorage.setItem(KEY,JSON.stringify(state))}else{const local=localStorage.getItem(KEY);if(local){try{state=JSON.parse(local)}catch{}}await saveCloudState()}renderAll()}
@@ -506,8 +515,8 @@ function renderWeek(){
                   const reg=absencesRemainingFor(id,60);
                   const promo=absencesRemainingFor(id,80);
                   return `<div class="thresholds">
-                    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"REG perdida":`REG +${reg.remaining}`}</span>
-                    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"PROMO perdida":`PROMO +${promo.remaining}`}</span>
+                    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"REGULAR: perdida":`REGULAR: ${reg.remaining}`}</span>
+                    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"PROMO: perdida":`PROMO: ${promo.remaining}`}</span>
                   </div>`;
                 })()}
               </div>
@@ -638,8 +647,8 @@ function renderSubjectDetail(){
   const reg = absencesRemainingFor(detailSubjectId,60);
   const promo = absencesRemainingFor(detailSubjectId,80);
   $("detailThresholds").innerHTML = `
-    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regularidad perdida":`Regularidad 60% · podés faltar ${reg.remaining} más`}</span>
-    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promoción perdida":`Promoción 80% · podés faltar ${promo.remaining} más`}</span>
+    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"REGULAR: perdida":`REGULAR: ${reg.remaining}`}</span>
+    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"PROMO: perdida":`PROMO: ${promo.remaining}`}</span>
   `;
 
   const start = localDate(state.semester.start), end = localDate(state.semester.end);
