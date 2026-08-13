@@ -164,9 +164,9 @@
   <section id="homeView">
     <div class="overview">
       <div class="metric"><strong id="overallPct">100%</strong><span>Asistencia global</span></div>
-      <div class="metric"><strong id="totalHeld">0</strong><span>Clases computadas</span></div>
-      <div class="metric"><strong id="totalAbsent">0</strong><span>Ausencias</span></div>
-      <div class="metric"><strong id="totalNoClass">0</strong><span>No se dieron</span></div>
+      <div class="metric"><strong id="regularSubjects">0/0</strong><span>Materias regulares</span></div>
+      <div class="metric"><strong id="promoSubjects">0/0</strong><span>Materias promocionables</span></div>
+      <div class="metric"><strong id="tightestPromoMargin">—</strong><span id="tightestPromoLabel">Margen mínimo para promoción</span></div>
     </div>
 
     <div class="week-nav">
@@ -182,12 +182,7 @@
     </div>
 
     <div id="weekGrid" class="week-grid"></div>
-
-    <div style="margin-top:16px">
-      <h2 class="section-title">Resumen por materia</h2>
-      <div id="attendanceList" class="attendance-list"></div>
-    </div>
-  </section>
+</section>
 
   <section id="subjectDetailView" class="hidden">
     <div class="detail-head">
@@ -467,15 +462,41 @@ function renderWeek(){
 }
 
 function renderOverview(){
-  let counted=0,present=0,absent=0,noclass=0;
+  let counted=0,present=0;
+  let regular=0,promo=0;
+  const totalSubjects=state.subjects.length;
+  let tightest=null;
+
   state.subjects.forEach(s=>{
     const st=subjectStats(s.id);
-    counted+=st.counted;present+=st.present;absent+=st.absent;noclass+=st.noclass;
+    counted+=st.counted;
+    present+=st.present;
+
+    if(st.pct>=60) regular++;
+    if(st.pct>=80) promo++;
+
+    const pm=absencesRemainingFor(s.id,80);
+    if(!pm.lost){
+      if(!tightest || pm.remaining<tightest.remaining){
+        tightest={remaining:pm.remaining,name:s.name};
+      }
+    }
   });
+
   $("overallPct").textContent=(counted?present/counted*100:100).toFixed(1)+"%";
-  $("totalHeld").textContent=counted;
-  $("totalAbsent").textContent=absent;
-  $("totalNoClass").textContent=noclass;
+  $("regularSubjects").textContent=`${regular}/${totalSubjects}`;
+  $("promoSubjects").textContent=`${promo}/${totalSubjects}`;
+
+  if(!totalSubjects){
+    $("tightestPromoMargin").textContent="—";
+    $("tightestPromoLabel").textContent="Margen mínimo para promoción";
+  }else if(tightest){
+    $("tightestPromoMargin").textContent=tightest.remaining===1?"1 falta":`${tightest.remaining} faltas`;
+    $("tightestPromoLabel").textContent=`Margen mínimo · ${tightest.name}`;
+  }else{
+    $("tightestPromoMargin").textContent="0 faltas";
+    $("tightestPromoLabel").textContent="Promoción ya perdida en todas";
+  }
 }
 
 function renderAttendance(){
