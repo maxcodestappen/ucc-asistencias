@@ -198,7 +198,38 @@
       .week-inline{width:100%}
     }
 
-  </style>
+  
+    /* v6 refinements */
+    .day-card.today-card{border:2px solid var(--accent)}
+    .today-badge{
+      display:inline-flex;align-items:center;margin-left:8px;padding:3px 7px;
+      border-radius:999px;background:var(--accent-soft);color:var(--accent);
+      font-size:10px;font-weight:900;vertical-align:middle
+    }
+    .day-card.future-day{opacity:.72}
+    .day-card.future-day .state-btn{opacity:.82}
+    .threshold{font-size:10px}
+    .more-wrap{position:relative}
+    .more-menu{
+      position:absolute;right:0;top:calc(100% + 8px);z-index:50;min-width:180px;
+      background:#fff;border:1px solid var(--border);border-radius:12px;
+      box-shadow:var(--shadow);padding:6px
+    }
+    .more-menu button,.more-menu .file-label{
+      display:block;width:100%;text-align:left;background:#fff;border:0;
+      padding:9px 10px;border-radius:8px;font-size:13px
+    }
+    .more-menu button:hover,.more-menu .file-label:hover{background:#f8fafc;transform:none}
+    .warning-banner{
+      margin:0 0 12px;padding:11px 14px;border:1px solid #fed7aa;
+      border-radius:12px;background:#fff7ed;color:#9a3412;font-size:13px;font-weight:750
+    }
+    .metric-subject{
+      display:block;margin-top:3px;font-size:10px;color:var(--muted);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+    }
+
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body><div id="authShell" class="auth-shell"><div class="auth-card"><h1>Mi asistencia</h1><p class="subtitle">Iniciá sesión para sincronizar tus datos entre dispositivos.</p><div class="auth-fields"><div><label>Email</label><input id="authEmail" type="email" autocomplete="email"></div><div><label>Contraseña</label><input id="authPassword" type="password" autocomplete="current-password"></div></div><div class="auth-actions"><button class="primary" onclick="login()">Iniciar sesión</button><button class="secondary" onclick="signup()">Crear cuenta</button></div><div id="authMessage" class="auth-message"></div></div></div>
@@ -211,9 +242,14 @@
     <div class="actions">
       <span id="syncStatus" class="sync-status" style="display:none"></span>
       <button class="secondary" onclick="showTab('settings')">Configuración</button>
-      <button class="secondary" onclick="exportData()">Exportar</button>
-      <label class="file-label">Importar<input id="importFile" type="file" accept=".json,application/json" onchange="importData(event)"></label>
-      <button class="secondary" onclick="logout()">Cerrar sesión</button>
+      <div class="more-wrap">
+        <button class="secondary" onclick="toggleMoreMenu(event)" aria-label="Más opciones">•••</button>
+        <div id="moreMenu" class="more-menu hidden">
+          <button onclick="exportData();closeMoreMenu()">Exportar</button>
+          <label class="file-label">Importar<input id="importFile" type="file" accept=".json,application/json" onchange="importData(event);closeMoreMenu()"></label>
+          <button onclick="logout()">Cerrar sesión</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -227,8 +263,9 @@
       <div class="metric"><strong id="overallPct">100%</strong><span>Asistencia global</span></div>
       <div class="metric"><strong id="regularSubjects">0/0</strong><span>Materias regulares</span></div>
       <div class="metric"><strong id="promoSubjects">0/0</strong><span>Materias promocionables</span></div>
-      <div class="metric"><strong id="tightestPromoMargin">—</strong><span id="tightestPromoLabel">Margen mínimo para promoción</span></div>
+      <div class="metric"><strong id="tightestPromoMargin">—</strong><span id="tightestPromoLabel">hasta perder promoción</span><small id="tightestPromoSubject" class="metric-subject"></small></div>
     </div>
+    <div id="attendanceWarnings"></div>
 
     <div class="week-nav">
       <div class="week-inline">
@@ -489,10 +526,13 @@ function renderWeek(){
   }
   el.innerHTML=activeDays.map(({d,key,ids})=>{
     const wholeDayException=isException(key);
-    return `<article class="day-card">
+    const todayKey=dateKey(new Date());
+    const isToday=key===todayKey;
+    const isFuture=key>todayKey;
+    return `<article class="day-card ${isToday?"today-card":""} ${isFuture?"future-day":""}">
       <div class="day-head">
         <div>
-          <h2>${DAYS[d.getDay()]}</h2>
+          <h2>${DAYS[d.getDay()]}${isToday?'<span class="today-badge">HOY</span>':""}</h2>
           <div class="day-date">${fmtDateLong(d)}</div>
         </div>
         ${wholeDayException?'<span class="state-btn state-noclass" style="padding:8px 10px;border-radius:10px;font-size:12px;font-weight:800">Día excluido</span>':""}
@@ -515,8 +555,8 @@ function renderWeek(){
                   const reg=absencesRemainingFor(id,60);
                   const promo=absencesRemainingFor(id,80);
                   return `<div class="thresholds">
-                    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"REGULAR: perdida":`REGULAR: ${reg.remaining}`}</span>
-                    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"PROMO: perdida":`PROMO: ${promo.remaining}`}</span>
+                    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regular perdida":`Regular ${reg.remaining} ${reg.remaining===1?"falta":"faltas"}`}</span>
+                    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promo perdida":`Promo ${promo.remaining} ${promo.remaining===1?"falta":"faltas"}`}</span>
                   </div>`;
                 })()}
               </div>
@@ -534,20 +574,22 @@ function renderOverview(){
   let regular=0,promo=0;
   const totalSubjects=state.subjects.length;
   let tightest=null;
+  const warnings=[];
 
   state.subjects.forEach(s=>{
     const st=subjectStats(s.id);
     counted+=st.counted;
     present+=st.present;
-
     if(st.pct>=60) regular++;
     if(st.pct>=80) promo++;
 
     const pm=absencesRemainingFor(s.id,80);
-    if(!pm.lost){
-      if(!tightest || pm.remaining<tightest.remaining){
-        tightest={remaining:pm.remaining,name:s.name};
-      }
+    if(!pm.lost && (!tightest || pm.remaining<tightest.remaining)){
+      tightest={remaining:pm.remaining,name:s.name};
+    }
+
+    if(!pm.lost && pm.remaining===0){
+      warnings.push(`${s.name}: no podés faltar más si querés promocionar.`);
     }
   });
 
@@ -557,14 +599,20 @@ function renderOverview(){
 
   if(!totalSubjects){
     $("tightestPromoMargin").textContent="—";
-    $("tightestPromoLabel").textContent="Margen mínimo para promoción";
+    $("tightestPromoLabel").textContent="hasta perder promoción";
+    $("tightestPromoSubject").textContent="";
   }else if(tightest){
     $("tightestPromoMargin").textContent=tightest.remaining===1?"1 falta":`${tightest.remaining} faltas`;
-    $("tightestPromoLabel").textContent=`Margen mínimo · ${tightest.name}`;
+    $("tightestPromoLabel").textContent="hasta perder promoción";
+    $("tightestPromoSubject").textContent=tightest.name;
   }else{
     $("tightestPromoMargin").textContent="0 faltas";
-    $("tightestPromoLabel").textContent="Promoción ya perdida en todas";
+    $("tightestPromoLabel").textContent="promoción perdida";
+    $("tightestPromoSubject").textContent="";
   }
+
+  const box=$("attendanceWarnings");
+  box.innerHTML=warnings.map(w=>`<div class="warning-banner">⚠ ${esc(w)}</div>`).join("");
 }
 
 function renderAttendance(){
@@ -647,8 +695,8 @@ function renderSubjectDetail(){
   const reg = absencesRemainingFor(detailSubjectId,60);
   const promo = absencesRemainingFor(detailSubjectId,80);
   $("detailThresholds").innerHTML = `
-    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"REGULAR: perdida":`REGULAR: ${reg.remaining}`}</span>
-    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"PROMO: perdida":`PROMO: ${promo.remaining}`}</span>
+    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regular perdida":`Regular ${reg.remaining} ${reg.remaining===1?"falta":"faltas"}`}</span>
+    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promo perdida":`Promo ${promo.remaining} ${promo.remaining===1?"falta":"faltas"}`}</span>
   `;
 
   const start = localDate(state.semester.start), end = localDate(state.semester.end);
@@ -730,6 +778,19 @@ function showTab(name){
 function fmtDate(d){return new Intl.DateTimeFormat("es-AR",{day:"2-digit",month:"short"}).format(d)}
 function fmtDateLong(d){return new Intl.DateTimeFormat("es-AR",{day:"2-digit",month:"long",year:"numeric"}).format(d)}
 function formatDateKey(s){const d=localDate(s);return d?fmtDateLong(d):s}
+
+
+function toggleMoreMenu(event){
+  event.stopPropagation();
+  $("moreMenu").classList.toggle("hidden");
+}
+function closeMoreMenu(){
+  const m=$("moreMenu"); if(m)m.classList.add("hidden");
+}
+document.addEventListener("click",e=>{
+  const wrap=document.querySelector(".more-wrap");
+  if(wrap && !wrap.contains(e.target)) closeMoreMenu();
+});
 
 function exportData(){
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
