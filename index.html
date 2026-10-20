@@ -4,13 +4,39 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi Asistencia</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <style>
     :root{
       --bg:#f5f7fb; --card:#fff; --text:#182230; --muted:#667085; --border:#e4e7ec;
       --accent:#2563eb; --accent-soft:#dbeafe; --present:#15803d; --present-soft:#dcfce7;
       --absent:#dc2626; --absent-soft:#fee2e2; --nodata:#6b7280; --nodata-soft:#eef2f6;
       --warn:#b45309; --warn-soft:#fef3c7; --shadow:0 14px 35px rgba(16,24,40,.07);
+      --soft:#f8fafc; --warn-border:#fed7aa;
+      color-scheme:light;
     }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0f141b; --card:#171e27; --text:#e6eaf0; --muted:#98a2b3; --border:#2a3441;
+        --accent:#60a5fa; --accent-soft:#1e3a5f; --present:#4ade80; --present-soft:#14532d;
+        --absent:#f87171; --absent-soft:#5c1d1d; --nodata:#a3acb9; --nodata-soft:#262f3b;
+        --warn:#fbbf24; --warn-soft:#3d2e0a; --warn-border:#6b4f12;
+        --soft:#1d2530; --shadow:0 14px 35px rgba(0,0,0,.35);
+        color-scheme:dark;
+      }
+      .primary{color:#0f141b}
+    }
+    .subject-edit{padding:12px 0;border-top:1px solid var(--border)}
+    .subject-edit:first-child{border-top:0}
+    .subject-edit-top{display:flex;gap:8px;align-items:center}
+    .subject-edit-top input{font-weight:800}
+    .subject-edit-pcts{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+    .subject-edit-pcts label{display:flex;align-items:center;gap:6px;margin:0}
+    .subject-edit-pcts input{width:70px;padding:6px 8px}
+    .warning-banner.danger{background:var(--absent-soft);color:var(--absent);border-color:var(--absent)}
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
     .app{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
@@ -21,21 +47,21 @@
     button,.file-label{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:750;cursor:pointer;transition:.15s ease}
     button:hover,.file-label:hover{transform:translateY(-1px)}
     .primary{background:var(--accent);color:#fff}
-    .secondary,.file-label{background:#fff;color:var(--text);border:1px solid var(--border)}
+    .secondary,.file-label{background:var(--card);color:var(--text);border:1px solid var(--border)}
     .danger{background:var(--absent-soft);color:var(--absent)}
     input[type=file]{display:none}
     .tabs{display:flex;gap:8px;margin-bottom:16px}
-    .tab{background:#fff;border:1px solid var(--border);color:var(--muted)}
-    .tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+    .tab{background:var(--card);border:1px solid var(--border);color:var(--muted)}
+    .tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
     .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
     .overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-    .metric{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px}
+    .metric{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
     .metric strong{display:block;font-size:26px;letter-spacing:-.03em}
     .metric span{font-size:12px;color:var(--muted)}
     .week-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
     .week-title{font-size:18px;font-weight:850}
     .week-grid{display:grid;gap:14px}
-    .day-card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+    .day-card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
     .day-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
     .day-head h2{font-size:18px;margin:0}
     .day-date{font-size:13px;color:var(--muted)}
@@ -51,7 +77,7 @@
       border:1px solid var(--border);
       border-radius:12px;
       padding:8px 10px;
-      background:#f8fafc;
+      background:var(--soft);
     }
     .class-pct strong{
       display:block;
@@ -76,7 +102,7 @@
       padding:5px 8px;
       font-size:11px;
       font-weight:800;
-      background:#f2f4f7;
+      background:var(--soft);
       color:var(--muted);
     }
     .threshold.ok60{background:var(--present-soft);color:var(--present)}
@@ -86,14 +112,14 @@
     .state-present{background:var(--present-soft);color:var(--present)}
     .state-absent{background:var(--absent-soft);color:var(--absent)}
     .state-noclass{background:var(--nodata-soft);color:var(--nodata)}
-    .empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;background:#fff}
+    .empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;background:var(--card)}
     .settings-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
     .half{grid-column:span 6}.full{grid-column:span 12}
     .section-title{font-size:18px;font-weight:850;margin:0 0 14px}
     .row{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
     .field{grid-column:span 6}.field.full{grid-column:span 12}
     label{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:6px}
-    input,select{width:100%;border:1px solid var(--border);border-radius:12px;padding:11px 12px;font:inherit;background:#fff;color:var(--text);outline:none}
+    input,select{width:100%;border:1px solid var(--border);border-radius:12px;padding:11px 12px;font:inherit;background:var(--card);color:var(--text);outline:none}
     input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
     .toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
     .toolbar .grow{flex:1 1 180px}
@@ -101,16 +127,16 @@
     .list-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--border)}
     .list-row:first-child{border-top:0}
     .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-    .day-config{border:1px solid var(--border);border-radius:14px;padding:12px;background:#fbfcfe}
+    .day-config{border:1px solid var(--border);border-radius:14px;padding:12px;background:var(--soft)}
     .day-config strong{display:block;font-size:13px;margin-bottom:8px}
-    .pill{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:7px 9px;background:#fff;margin-top:6px;font-size:12px}
+    .pill{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:7px 9px;background:var(--card);margin-top:6px;font-size:12px}
     .attendance-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .subject-summary{border:1px solid var(--border);border-radius:16px;padding:15px;background:#fff}
+    .subject-summary{border:1px solid var(--border);border-radius:16px;padding:15px;background:var(--card)}
     .summary-top{display:flex;justify-content:space-between;gap:10px}
     .summary-name{font-weight:850}
     .summary-pct{font-size:24px;font-weight:900}
     .summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-    .smallstat{background:#f8fafc;border-radius:10px;padding:9px;text-align:center}
+    .smallstat{background:var(--soft);border-radius:10px;padding:9px;text-align:center}
     .smallstat strong{display:block}.smallstat span{font-size:11px;color:var(--muted)}
     .note{font-size:12px;color:var(--muted);margin-top:8px}
     
@@ -118,15 +144,15 @@
     .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
     .detail-title{margin:0;font-size:28px;letter-spacing:-.03em}
     .detail-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-    .detail-metric{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+    .detail-metric{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
     .detail-metric strong{display:block;font-size:22px}
     .detail-metric span{font-size:11px;color:var(--muted)}
     .calendar-wrap{display:grid;gap:16px}
-    .month-card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+    .month-card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:16px}
     .month-title{font-size:18px;font-weight:850;margin:0 0 12px;text-transform:capitalize}
     .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
     .weekday{font-size:11px;color:var(--muted);font-weight:800;text-align:center;padding:4px 0}
-    .cal-day{min-height:74px;border:1px solid var(--border);border-radius:12px;padding:7px;background:#fafbfc;display:flex;flex-direction:column;justify-content:space-between}
+    .cal-day{min-height:74px;border:1px solid var(--border);border-radius:12px;padding:7px;background:var(--soft);display:flex;flex-direction:column;justify-content:space-between}
     .cal-day.empty-day{visibility:hidden}
     .cal-day.nonclass{opacity:.42}
     .cal-date{font-size:12px;font-weight:800}
@@ -136,7 +162,7 @@
     .legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
     .dot-present{background:var(--present)} .dot-absent{background:var(--absent)} .dot-noclass{background:var(--nodata)}
 
-    .auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.auth-card{width:min(100%,430px);background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:22px}.auth-fields{display:grid;gap:12px}.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.auth-message,.sync-status{font-size:12px;color:var(--muted);margin-top:10px}.hidden{display:none!important}
+    .auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.auth-card{width:min(100%,430px);background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:22px}.auth-fields{display:grid;gap:12px}.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.auth-message,.sync-status{font-size:12px;color:var(--muted);margin-top:10px}.hidden{display:none!important}
     .ghost{background:transparent;color:var(--muted);padding:6px 8px}
     @media(max-width:850px){.overview{grid-template-columns:repeat(2,1fr)}.half{grid-column:span 12}.days{grid-template-columns:repeat(2,1fr)}.attendance-list{grid-template-columns:1fr}}
     @media(max-width:620px){header{flex-direction:column}.week-nav{align-items:flex-start;flex-direction:column}.class-row{align-items:stretch;flex-direction:column}.class-main{width:100%}.state-btn{width:100%}.field{grid-column:span 12}.days{grid-template-columns:1fr}.overview{grid-template-columns:1fr 1fr}.detail-summary{grid-template-columns:1fr 1fr}.calendar-grid{gap:4px}.cal-day{min-height:66px;padding:5px}.cal-state{font-size:10px;padding:6px 4px}}
@@ -154,7 +180,7 @@
       grid-template-columns:repeat(4,1fr);
       gap:0;
       margin-bottom:14px;
-      background:#fff;
+      background:var(--card);
       border:1px solid var(--border);
       border-radius:16px;
       box-shadow:var(--shadow);
@@ -212,17 +238,17 @@
     .more-wrap{position:relative}
     .more-menu{
       position:absolute;right:0;top:calc(100% + 8px);z-index:50;min-width:180px;
-      background:#fff;border:1px solid var(--border);border-radius:12px;
+      background:var(--card);border:1px solid var(--border);border-radius:12px;
       box-shadow:var(--shadow);padding:6px
     }
     .more-menu button,.more-menu .file-label{
-      display:block;width:100%;text-align:left;background:#fff;border:0;
+      display:block;width:100%;text-align:left;background:var(--card);border:0;
       padding:9px 10px;border-radius:8px;font-size:13px
     }
-    .more-menu button:hover,.more-menu .file-label:hover{background:#f8fafc;transform:none}
+    .more-menu button:hover,.more-menu .file-label:hover{background:var(--soft);transform:none}
     .warning-banner{
-      margin:0 0 12px;padding:11px 14px;border:1px solid #fed7aa;
-      border-radius:12px;background:#fff7ed;color:#9a3412;font-size:13px;font-weight:750
+      margin:0 0 12px;padding:11px 14px;border:1px solid var(--warn-border);
+      border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:750
     }
     .metric-subject{
       display:block;margin-top:3px;font-size:10px;color:var(--muted);
@@ -230,9 +256,10 @@
     }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 </head>
-<body><div id="authShell" class="auth-shell"><div class="auth-card"><h1>Mi asistencia</h1><p class="subtitle">Iniciá sesión para sincronizar tus datos entre dispositivos.</p><div class="auth-fields"><div><label>Email</label><input id="authEmail" type="email" autocomplete="email"></div><div><label>Contraseña</label><input id="authPassword" type="password" autocomplete="current-password"></div></div><div class="auth-actions"><button class="primary" onclick="login()">Iniciar sesión</button><button class="secondary" onclick="signup()">Crear cuenta</button></div><div id="authMessage" class="auth-message"></div></div></div>
+<body><div id="authShell" class="auth-shell"><div class="auth-card"><h1>Mi asistencia</h1><p class="subtitle">Iniciá sesión para sincronizar tus datos entre dispositivos.</p><div class="auth-fields"><div><label>Email</label><input id="authEmail" type="email" autocomplete="email"></div><div><label>Contraseña</label><input id="authPassword" type="password" autocomplete="current-password"></div></div><div class="auth-actions"><button class="primary" onclick="login()">Iniciar sesión</button><button class="secondary" onclick="signup()">Crear cuenta</button></div><button class="ghost" style="margin-top:8px" onclick="forgotPassword()">Olvidé mi contraseña</button><div id="authMessage" class="auth-message"></div></div></div>
+<div id="recoveryShell" class="auth-shell hidden"><div class="auth-card"><h1>Nueva contraseña</h1><p class="subtitle">Elegí una contraseña nueva para tu cuenta.</p><div class="auth-fields"><div><label>Contraseña nueva</label><input id="newPassword" type="password" autocomplete="new-password"></div></div><div class="auth-actions" style="grid-template-columns:1fr"><button class="primary" onclick="saveNewPassword()">Guardar contraseña</button></div><div id="recoveryMessage" class="auth-message"></div></div></div>
 <div class="app" id="mainApp" style="display:none">
   <header>
     <div>
@@ -372,7 +399,7 @@
 
       <section class="card half">
         <h2 class="section-title">Datos</h2>
-        <p class="note">Los estados de cada clase se guardan localmente en este navegador.</p>
+        <p class="note">Tus datos se guardan en este dispositivo y se sincronizan con tu cuenta. Si marcás algo sin conexión, se suben cuando vuelve internet.</p>
         <button class="danger" onclick="resetAll()">Borrar toda la configuración</button>
       </section>
     </div>
@@ -385,13 +412,33 @@ const DAYS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"
 const SHORT=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
 const sb=window.supabase.createClient("https://alljsidyeocesoabiurw.supabase.co","sb_publishable_Xx4PeUa5v2yY1-YUTD2loQ_BgcLzLA7");
 let currentUser=null, saveTimer=null;
-let state={semester:{start:"",end:""},subjects:[],schedule:[],exceptions:[],classStates:{}};
+let state={semester:{start:"",end:""},subjects:[],schedule:[],exceptions:[],classStates:{},classStamps:{},updatedAt:0};
 let weekAnchor=startOfWeek(new Date());
 let detailSubjectId = null;
 
 const $ = id => document.getElementById(id);
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())}
-function persist(){localStorage.setItem(KEY,JSON.stringify(state));renderAll();queueCloudSave()}
+const PENDING_KEY=KEY+"_pending";
+function emptyState(){return {semester:{start:"",end:""},subjects:[],schedule:[],exceptions:[],classStates:{},classStamps:{},updatedAt:0}}
+function normalize(s){const e=emptyState();return {...e,...s,semester:{...e.semester,...(s?.semester||{})},classStates:s?.classStates||{},classStamps:s?.classStamps||{},updatedAt:s?.updatedAt||0}}
+// Combina dos versiones: cada clase se queda con la marca más reciente;
+// la configuración (semestre, materias, cursado, excepciones) con la versión más nueva.
+function mergeStates(a,b){
+  a=normalize(a);b=normalize(b);
+  const base=a.updatedAt>=b.updatedAt?a:b;
+  const out={...base,classStates:{},classStamps:{},updatedAt:Math.max(a.updatedAt,b.updatedAt)};
+  const ids=new Set(base.subjects.map(s=>s.id));
+  new Set([...Object.keys(a.classStates),...Object.keys(b.classStates)]).forEach(k=>{
+    if(!ids.has(k.split("|")[1]))return;
+    const ta=a.classStamps[k]||0,tb=b.classStamps[k]||0;
+    const src=k in a.classStates&&(ta>=tb||!(k in b.classStates))?a:b;
+    out.classStates[k]=src.classStates[k];
+    if(src.classStamps[k])out.classStamps[k]=src.classStamps[k];
+  });
+  return out;
+}
+function saveLocal(){localStorage.setItem(KEY,JSON.stringify(state));localStorage.setItem(PENDING_KEY,"1")}
+function persist(){state.updatedAt=Date.now();saveLocal();renderAll();queueCloudSave()}
 function setSyncStatus(t){
   const e=$("syncStatus");
   if(!e)return;
@@ -400,8 +447,43 @@ function setSyncStatus(t){
   e.style.display=isError?"inline":"none";
 }
 function queueCloudSave(){if(!currentUser)return;setSyncStatus("Guardando…");clearTimeout(saveTimer);saveTimer=setTimeout(saveCloudState,300)}
-async function saveCloudState(){if(!currentUser)return;const {error}=await sb.from("attendance_app_state").upsert({user_id:currentUser.id,state,updated_at:new Date().toISOString()},{onConflict:"user_id"});setSyncStatus(error?"Error al sincronizar":"Sincronizado");if(error)console.error(error)}
-async function loadCloudState(){const {data,error}=await sb.from("attendance_app_state").select("state").eq("user_id",currentUser.id).maybeSingle();if(error){console.error(error);setSyncStatus("Error al cargar");return}if(data?.state){state=data.state;localStorage.setItem(KEY,JSON.stringify(state))}else{const local=localStorage.getItem(KEY);if(local){try{state=JSON.parse(local)}catch{}}await saveCloudState()}renderAll()}
+async function fetchCloudState(){
+  const {data,error}=await sb.from("attendance_app_state").select("state").eq("user_id",currentUser.id).maybeSingle();
+  if(error)throw error;
+  return data?.state||null;
+}
+async function saveCloudState(){
+  if(!currentUser)return;
+  try{
+    // Traer lo último de la nube y combinar, para no pisar cambios de otro dispositivo.
+    const cloud=await fetchCloudState();
+    if(cloud)state=mergeStates(state,cloud);
+    const {error}=await sb.from("attendance_app_state").upsert({user_id:currentUser.id,state,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+    if(error)throw error;
+    localStorage.setItem(KEY,JSON.stringify(state));
+    localStorage.removeItem(PENDING_KEY);
+    setSyncStatus("Sincronizado");
+    if(cloud)renderAll();
+  }catch(e){console.error(e);setSyncStatus("Error al sincronizar")}
+}
+async function loadCloudState(){
+  let local=null;
+  try{local=JSON.parse(localStorage.getItem(KEY))}catch{}
+  const pending=!!localStorage.getItem(PENDING_KEY);
+  let cloud;
+  try{cloud=await fetchCloudState()}catch(e){
+    console.error(e);setSyncStatus("Error al cargar");
+    if(local){state=normalize(local);renderAll()}
+    return;
+  }
+  if(cloud&&local&&pending)state=mergeStates(local,cloud);
+  else if(cloud)state=normalize(cloud);
+  else if(local)state=normalize(local);
+  localStorage.setItem(KEY,JSON.stringify(state));
+  renderAll();
+  if(pending||!cloud)await saveCloudState();
+}
+window.addEventListener("online",()=>{if(localStorage.getItem(PENDING_KEY))saveCloudState()});
 function esc(s=""){return s.replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
 function localDate(s){if(!s)return null;const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12)}
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
@@ -413,13 +495,10 @@ function withinSemester(date){
   return date>=state.semester.start && date<=state.semester.end;
 }
 function classKey(date,subjectId){return `${date}|${subjectId}`}
-function defaultStateFor(date){
-  const today=dateKey(new Date());
-  return date<=today ? "present" : "present";
-}
 function getClassState(date,subjectId){
   if(isException(date)) return "noclass";
-  return state.classStates[classKey(date,subjectId)] || defaultStateFor(date);
+  // Sin marca, la clase cuenta como presente (también las futuras).
+  return state.classStates[classKey(date,subjectId)] || "present";
 }
 function cycleState(date,subjectId){
   if(!withinSemester(date)) return;
@@ -427,7 +506,12 @@ function cycleState(date,subjectId){
   const current=getClassState(date,subjectId);
   const next=current==="present"?"absent":current==="absent"?"noclass":"present";
   state.classStates[key]=next;
-  persist();
+  state.classStamps[key]=Date.now();
+  saveLocal();
+  renderOverview();
+  renderWeek();
+  renderSubjectDetail();
+  queueCloudSave();
 }
 function stateLabel(st){return st==="present"?"Presente":st==="absent"?"Ausente":"No se dio"}
 function stateClass(st){return st==="present"?"state-present":st==="absent"?"state-absent":"state-noclass"}
@@ -447,6 +531,19 @@ function removeSubject(id){
   state.subjects=state.subjects.filter(x=>x.id!==id);
   state.schedule=state.schedule.filter(x=>x.subjectId!==id);
   Object.keys(state.classStates).forEach(k=>{if(k.endsWith(`|${id}`))delete state.classStates[k]});
+  persist();
+}
+function updateSubject(id,field,value){
+  const s=state.subjects.find(x=>x.id===id); if(!s)return;
+  if(field==="name"){
+    const name=value.trim();
+    if(!name)return renderSettings();
+    s.name=name;
+  }else{
+    const n=Number(value);
+    if(value===""||!Number.isFinite(n)||n<0||n>100)return renderSettings();
+    s[field]=n;
+  }
   persist();
 }
 function addSchedule(){
@@ -508,6 +605,16 @@ function absencesRemainingFor(subjectId, thresholdPct){
   return {remaining:Math.max(0,remaining),lost:remaining<0};
 }
 
+// Porcentajes mínimos de cada materia (por defecto 60% regular y 80% promoción).
+function thresholds(s){return {reg:s.reg??60,promo:s.promo??80}}
+function thresholdChips(s){
+  const t=thresholds(s);
+  const reg=absencesRemainingFor(s.id,t.reg), promo=absencesRemainingFor(s.id,t.promo);
+  const faltas=n=>`${n} ${n===1?"falta":"faltas"}`;
+  return `<span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regular perdida":`Regular ${faltas(reg.remaining)}`}</span>
+    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promo perdida":`Promo ${faltas(promo.remaining)}`}</span>`;
+}
+
 function renderWeek(){
   const start=weekAnchor, end=addDays(start,6);
   $("weekTitle").textContent=`${fmtDate(start)} – ${fmtDate(end)}`;
@@ -551,14 +658,7 @@ function renderWeek(){
               <div>
                 <div class="class-name">${esc(s.name)}</div>
                 <div class="class-meta">${wholeDayException?"Este día está excluido globalmente":"Tocá la materia para ver su calendario"}</div>
-                ${(()=>{
-                  const reg=absencesRemainingFor(id,60);
-                  const promo=absencesRemainingFor(id,80);
-                  return `<div class="thresholds">
-                    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regular perdida":`Regular ${reg.remaining} ${reg.remaining===1?"falta":"faltas"}`}</span>
-                    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promo perdida":`Promo ${promo.remaining} ${promo.remaining===1?"falta":"faltas"}`}</span>
-                  </div>`;
-                })()}
+                <div class="thresholds">${thresholdChips(s)}</div>
               </div>
             </div>
             <button class="state-btn ${stateClass(st)}" ${wholeDayException?"disabled":""} onclick="cycleState('${key}','${id}')">${stateLabel(st)}</button>
@@ -580,18 +680,27 @@ function renderOverview(){
     const st=subjectStats(s.id);
     counted+=st.counted;
     present+=st.present;
-    if(st.pct>=60) regular++;
-    if(st.pct>=80) promo++;
+    const t=thresholds(s);
+    if(st.pct>=t.reg) regular++;
+    if(st.pct>=t.promo) promo++;
 
-    const pm=absencesRemainingFor(s.id,80);
+    const rm=absencesRemainingFor(s.id,t.reg);
+    const pm=absencesRemainingFor(s.id,t.promo);
     if(!pm.lost && (!tightest || pm.remaining<tightest.remaining)){
       tightest={remaining:pm.remaining,name:s.name};
     }
 
-    if(!pm.lost && pm.remaining===0){
-      warnings.push(`${s.name}: no podés faltar más si querés promocionar.`);
+    const faltas=n=>n===1?"1 falta":`${n} faltas`;
+    if(rm.lost) warnings.push({level:"danger",text:`${s.name}: perdiste la regularidad.`});
+    else if(pm.lost){
+      warnings.push({level:"danger",text:`${s.name}: perdiste la promoción.`});
+      if(rm.remaining===0) warnings.push({level:"warn",text:`${s.name}: no podés faltar más si querés seguir regular.`});
+      else if(rm.remaining<=2) warnings.push({level:"warn",text:`${s.name}: te ${rm.remaining===1?"queda":"quedan"} ${faltas(rm.remaining)} para seguir regular.`});
     }
+    else if(pm.remaining===0) warnings.push({level:"warn",text:`${s.name}: no podés faltar más si querés promocionar.`});
+    else if(pm.remaining<=2) warnings.push({level:"warn",text:`${s.name}: te ${pm.remaining===1?"queda":"quedan"} ${faltas(pm.remaining)} para mantener la promoción.`});
   });
+  warnings.sort((a,b)=>(a.level==="danger"?0:1)-(b.level==="danger"?0:1));
 
   $("overallPct").textContent=(counted?present/counted*100:100).toFixed(1)+"%";
   $("regularSubjects").textContent=`${regular}/${totalSubjects}`;
@@ -612,33 +721,25 @@ function renderOverview(){
   }
 
   const box=$("attendanceWarnings");
-  box.innerHTML=warnings.map(w=>`<div class="warning-banner">⚠ ${esc(w)}</div>`).join("");
-}
-
-function renderAttendance(){
-  const el=$("attendanceList");
-  if(!state.subjects.length){el.innerHTML='<div class="empty">Agregá materias en Configuración.</div>';return}
-  el.innerHTML=state.subjects.map(s=>{
-    const st=subjectStats(s.id);
-    return `<div class="subject-summary">
-      <div class="summary-top">
-        <div class="summary-name">${esc(s.name)}</div>
-        <div class="summary-pct">${st.pct.toFixed(1)}%</div>
-      </div>
-      <div class="summary-stats">
-        <div class="smallstat"><strong>${st.present}</strong><span>Presentes</span></div>
-        <div class="smallstat"><strong>${st.absent}</strong><span>Ausentes</span></div>
-        <div class="smallstat"><strong>${st.noclass}</strong><span>No se dieron</span></div>
-      </div>
-    </div>`;
-  }).join("");
+  box.innerHTML=warnings.map(w=>`<div class="warning-banner ${w.level==="danger"?"danger":""}">${w.level==="danger"?"✕":"⚠"} ${esc(w.text)}</div>`).join("");
 }
 
 function renderSettings(){
   $("semesterStart").value=state.semester.start||"";
   $("semesterEnd").value=state.semester.end||"";
-  $("subjectsList").innerHTML=state.subjects.length?state.subjects.map(s=>`
-    <div class="list-row"><div><strong>${esc(s.name)}</strong></div><button class="ghost" onclick="removeSubject('${s.id}')">Eliminar</button></div>`).join(""):'<div class="empty">Todavía no agregaste materias.</div>';
+  $("subjectsList").innerHTML=state.subjects.length?state.subjects.map(s=>{
+    const t=thresholds(s);
+    return `<div class="subject-edit">
+      <div class="subject-edit-top">
+        <input value="${esc(s.name)}" aria-label="Nombre de la materia" onchange="updateSubject('${s.id}','name',this.value)">
+        <button class="ghost" onclick="removeSubject('${s.id}')">Eliminar</button>
+      </div>
+      <div class="subject-edit-pcts">
+        <label>Regular <input type="number" min="0" max="100" value="${t.reg}" onchange="updateSubject('${s.id}','reg',this.value)">%</label>
+        <label>Promoción <input type="number" min="0" max="100" value="${t.promo}" onchange="updateSubject('${s.id}','promo',this.value)">%</label>
+      </div>
+    </div>`;
+  }).join(""):'<div class="empty">Todavía no agregaste materias.</div>';
 
   $("scheduleDay").innerHTML=[1,2,3,4,5,6,0].map(d=>`<option value="${d}">${DAYS[d]}</option>`).join("");
   $("scheduleSubject").innerHTML=state.subjects.length?state.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join(""):'<option value="">Primero agregá una materia</option>';
@@ -692,12 +793,7 @@ function renderSubjectDetail(){
   $("detailAbsent").textContent = st.absent;
   $("detailNoClass").textContent = st.noclass;
 
-  const reg = absencesRemainingFor(detailSubjectId,60);
-  const promo = absencesRemainingFor(detailSubjectId,80);
-  $("detailThresholds").innerHTML = `
-    <span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regular perdida":`Regular ${reg.remaining} ${reg.remaining===1?"falta":"faltas"}`}</span>
-    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promo perdida":`Promo ${promo.remaining} ${promo.remaining===1?"falta":"faltas"}`}</span>
-  `;
+  $("detailThresholds").innerHTML = thresholdChips(s);
 
   const start = localDate(state.semester.start), end = localDate(state.semester.end);
   const cal = $("subjectCalendar");
@@ -737,7 +833,7 @@ function renderSubjectDetail(){
       const st = getClassState(key,detailSubjectId);
       cells.push(`<div class="cal-day">
         <div class="cal-date">${day}</div>
-        <button class="cal-state ${stateClass(st)}" onclick="cycleStateDetail('${key}','${detailSubjectId}')">${stateLabel(st)}</button>
+        <button class="cal-state ${stateClass(st)}" onclick="cycleState('${key}','${detailSubjectId}')">${stateLabel(st)}</button>
       </div>`);
     }
 
@@ -751,18 +847,6 @@ function renderSubjectDetail(){
   }).join("");
 }
 
-function cycleStateDetail(date,subjectId){
-  if(!withinSemester(date)) return;
-  const key = classKey(date,subjectId);
-  const current = getClassState(date,subjectId);
-  const next = current==="present" ? "absent" : current==="absent" ? "noclass" : "present";
-  state.classStates[key] = next;
-  localStorage.setItem(KEY,JSON.stringify(state));
-  queueCloudSave();
-  renderOverview();
-  renderWeek();
-  renderSubjectDetail();
-}
 
 
 function changeWeek(n){weekAnchor=addDays(weekAnchor,n);renderWeek()}
@@ -803,23 +887,53 @@ function importData(event){
   r.onload=()=>{try{
     const d=JSON.parse(r.result);
     if(!d.semester||!Array.isArray(d.subjects)||!Array.isArray(d.schedule)||!Array.isArray(d.exceptions)||typeof d.classStates!=="object")throw new Error();
-    state=d;persist();alert("Datos importados correctamente.");
+    state=normalize(d);persist();alert("Datos importados correctamente.");
   }catch{alert("El archivo no es válido.")}event.target.value=""};
   r.readAsText(f);
 }
 function resetAll(){
   if(!confirm("¿Seguro que querés borrar todo?"))return;
-  state={semester:{start:"",end:""},subjects:[],schedule:[],exceptions:[],classStates:{}};
-  localStorage.setItem(KEY,JSON.stringify(state));renderAll();queueCloudSave();showTab("settings");
+  state=emptyState();persist();showTab("settings");
 }
 function renderAll(){renderOverview();renderWeek();renderSettings()}
 function authMsg(t,b=false){const e=$("authMessage");e.textContent=t||"";e.style.color=b?"var(--absent)":"var(--muted)"}
 async function login(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||!password)return authMsg("Ingresá email y contraseña.",true);authMsg("Ingresando…");const {error}=await sb.auth.signInWithPassword({email,password});if(error)authMsg(error.message,true)}
 async function signup(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<6)return authMsg("Usá una contraseña de al menos 6 caracteres.",true);const {data,error}=await sb.auth.signUp({email,password});if(error)return authMsg(error.message,true);authMsg(data.session?"Cuenta creada.":"Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.")}
 async function logout(){await sb.auth.signOut()}
+let recovering=false;
+async function forgotPassword(){
+  const email=$("authEmail").value.trim();
+  if(!email)return authMsg("Escribí tu email arriba y volvé a tocar \"Olvidé mi contraseña\".",true);
+  authMsg("Enviando…");
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  authMsg(error?error.message:"Te enviamos un email con un enlace para elegir una contraseña nueva.",!!error);
+}
+async function saveNewPassword(){
+  const password=$("newPassword").value, msg=$("recoveryMessage");
+  if(password.length<6){msg.style.color="var(--absent)";msg.textContent="Usá al menos 6 caracteres.";return}
+  const {data,error}=await sb.auth.updateUser({password});
+  if(error){msg.style.color="var(--absent)";msg.textContent=error.message;return}
+  recovering=false;
+  $("recoveryShell").classList.add("hidden");
+  $("newPassword").value="";
+  history.replaceState(null,"",location.pathname);
+  await applySession({user:data.user});
+}
 async function applySession(session){currentUser=session?.user||null;if(currentUser){$("authShell").style.display="none";$("mainApp").style.display="";setSyncStatus("Cargando…");await loadCloudState()}else{$("mainApp").style.display="none";$("authShell").style.display="";authMsg("")}}
-sb.auth.onAuthStateChange((event,session)=>setTimeout(()=>applySession(session),0));
-(async()=>{const {data}=await sb.auth.getSession();await applySession(data.session)})();
+sb.auth.onAuthStateChange((event,session)=>setTimeout(()=>{
+  if(event==="PASSWORD_RECOVERY"){
+    recovering=true;
+    $("authShell").style.display="none";
+    $("mainApp").style.display="none";
+    $("recoveryShell").classList.remove("hidden");
+    return;
+  }
+  if(!recovering)applySession(session);
+},0));
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  navigator.serviceWorker.register("sw.js").catch(e=>console.error(e));
+}
+(async()=>{const {data}=await sb.auth.getSession();if(!recovering)await applySession(data.session)})();
 </script>
 </body>
 </html>
