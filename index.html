@@ -174,7 +174,7 @@
 
     /* Navegación inferior */
     .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
-    .tabbar-inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+    .tabbar-inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
     .tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 10px;font-size:11px;font-weight:600;color:var(--muted)}
     .tabbar button svg{width:22px;height:22px}
     .tabbar button.active{color:var(--accent)}
@@ -337,6 +337,10 @@
       <div id="detailCalendar"></div>
     </section>
 
+    <section id="correlatividadesView" class="hidden">
+      <iframe id="correlatividadesFrame" title="Correlatividades" style="display:block;width:100%;height:70vh;border:0;background:transparent"></iframe>
+    </section>
+
     <section id="settingsView" class="hidden">
       <h2 class="view-title">Ajustes</h2>
 
@@ -394,6 +398,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
         Materias
       </button>
+      <button id="tab-correlatividades" onclick="showTab('correlatividades')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="16" width="7" height="5" rx="1.5"/><path d="M6.5 8v4.5a2 2 0 0 0 2 2h9V16M17.5 8v8"/></svg>
+        Correlatividades
+      </button>
       <button id="tab-settings" onclick="showTab('settings')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
         Ajustes
@@ -425,6 +433,8 @@ function mergeStates(a,b){
   a=normalize(a);b=normalize(b);
   const base=a.updatedAt>=b.updatedAt?a:b;
   const out={...base,classStates:{},classStamps:{},updatedAt:Math.max(a.updatedAt,b.updatedAt)};
+  const ca=a.correlativas,cb=b.correlativas;
+  if(ca||cb)out.correlativas=(ca?.updatedAt||0)>=(cb?.updatedAt||0)?(ca||cb):cb;
   const ids=new Set(base.subjects.map(s=>s.id));
   new Set([...Object.keys(a.classStates),...Object.keys(b.classStates)]).forEach(k=>{
     if(!ids.has(k.split("|")[1]))return;
@@ -814,9 +824,32 @@ function showTab(name){
   $("weekView").classList.toggle("hidden",name!=="week");
   $("subjectsView").classList.toggle("hidden",name!=="subjects");
   $("settingsView").classList.toggle("hidden",name!=="settings");
-  ["week","subjects","settings"].forEach(t=>$("tab-"+t).classList.toggle("active",t===name));
+  $("correlatividadesView").classList.toggle("hidden",name!=="correlatividades");
+  if(name==="correlatividades" && !$("correlatividadesFrame").src) $("correlatividadesFrame").src="correlatividades.html";
+  ["week","subjects","correlatividades","settings"].forEach(t=>$("tab-"+t).classList.toggle("active",t===name));
   window.scrollTo({top:0});
 }
+// La pestaña Correlatividades vive en su propia página dentro de un iframe; avisa su alto para no tener scroll propio.
+// Sus datos se guardan en state.correlativas (con su propia fecha) y se sincronizan con el resto.
+let sentCorrelativas=null;
+function sendCorrelativas(){
+  const f=$("correlatividadesFrame");
+  if(!f.contentWindow||!f.src)return;
+  const json=JSON.stringify(state.correlativas||null);
+  if(json===sentCorrelativas)return;
+  sentCorrelativas=json;
+  f.contentWindow.postMessage({correlativas:state.correlativas||null},location.origin);
+}
+window.addEventListener("message",e=>{
+  if(e.origin!==location.origin||!e.data)return;
+  if(e.data.correlatividadesHeight)$("correlatividadesFrame").style.height=e.data.correlatividadesHeight+"px";
+  if(e.data.correlatividadesReady){sentCorrelativas=null;sendCorrelativas()}
+  if(e.data.correlativasSave){
+    state.correlativas=e.data.correlativasSave;
+    sentCorrelativas=JSON.stringify(state.correlativas);
+    saveLocal();queueCloudSave();
+  }
+});
 function fmtShort(d){return new Intl.DateTimeFormat("es-AR",{day:"numeric",month:"short"}).format(d).replace(".","")}
 function fmtDay(d){return new Intl.DateTimeFormat("es-AR",{day:"numeric",month:"long"}).format(d)}
 function formatDateKey(s){const d=localDate(s);return d?new Intl.DateTimeFormat("es-AR",{weekday:"long",day:"numeric",month:"long"}).format(d):s}
@@ -847,7 +880,7 @@ function resetAll(){
   if(!confirm("¿Seguro que querés borrar todo?"))return;
   state=emptyState();persist();showTab("settings");
 }
-function renderAll(){renderSummary();renderWeek();renderSubjects();renderSettings();renderSubjectDetail()}
+function renderAll(){renderSummary();renderWeek();renderSubjects();renderSettings();renderSubjectDetail();sendCorrelativas()}
 function authMsg(t,b=false){const e=$("authMessage");e.textContent=t||"";e.style.color=b?"var(--absent)":"var(--muted)"}
 async function login(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||!password)return authMsg("Ingresá email y contraseña.",true);authMsg("Ingresando…");const {error}=await sb.auth.signInWithPassword({email,password});if(error)authMsg(error.message,true)}
 async function signup(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<6)return authMsg("Usá una contraseña de al menos 6 caracteres.",true);const {data,error}=await sb.auth.signUp({email,password});if(error)return authMsg(error.message,true);authMsg(data.session?"Cuenta creada.":"Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.")}

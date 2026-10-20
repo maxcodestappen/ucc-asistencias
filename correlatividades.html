@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Correlatividades</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --soft:#f2f4f8; --text:#182230; --muted:#667085; --border:#e4e7ec;
+      --accent:#2563eb; --accent-soft:#dbeafe; --on-accent:#fff;
+      --ok:#15803d; --ok-soft:#dcfce7;
+      --reg:#b45309; --reg-soft:#fef3c7;
+      --lock:#9aa3b0; --bad:#dc2626; --bad-soft:#fee2e2;
+      --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.05);
+      color-scheme:light;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0f141b; --card:#171e27; --soft:#1f2732; --text:#e6eaf0; --muted:#98a2b3; --border:#2a3441;
+        --accent:#60a5fa; --accent-soft:#1e3a5f; --on-accent:#0f141b;
+        --ok:#4ade80; --ok-soft:#14532d;
+        --reg:#fbbf24; --reg-soft:#3d2e0a;
+        --lock:#5b6573; --bad:#f87171; --bad-soft:#5c1d1d;
+        --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+        color-scheme:dark;
+      }
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+    button,input,select{font:inherit;color:inherit}
+    button{cursor:pointer;border:0;background:none;padding:0}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;gap:6px;border-radius:12px;padding:9px 14px;font-weight:600}
+    .btn-primary{background:var(--accent);color:var(--on-accent)}
+    .btn-secondary{background:var(--card);border:1px solid var(--border)}
+    .btn-danger{background:var(--bad-soft);color:var(--bad)}
+
+    header{max-width:1200px;margin:0 auto;padding:20px 16px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+    h1{margin:0;font-size:22px}
+    .actions{display:flex;flex-wrap:wrap;gap:8px}
+    .summary{max-width:1200px;margin:0 auto;padding:0 16px 8px;display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+    .bar{height:8px;background:var(--soft);border-radius:99px;overflow:hidden;max-width:1200px;margin:0 16px 14px}
+    .bar>div{height:100%;background:var(--ok);transition:width .3s}
+    @media(min-width:1232px){.bar{margin:0 auto 14px}}
+    .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+
+    .grid{max-width:1200px;margin:0 auto;padding:0 16px 40px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:14px;overflow-x:auto}
+    @media(max-width:700px){.grid{grid-auto-flow:row;grid-auto-columns:auto}}
+    .year h2{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:4px 0 10px}
+    .sem{font-size:12px;color:var(--muted);margin:10px 0 6px}
+    .card{position:relative;display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow);transition:opacity .15s,transform .15s,outline-color .15s;outline:2px solid transparent}
+    .card .name{font-weight:600;font-size:14px}
+    .card .st{font-size:12px;color:var(--muted);margin-top:2px}
+    .card.aprobada{border-left-color:var(--ok);background:var(--ok-soft)}
+    .card.regular{border-left-color:var(--reg);background:var(--reg-soft)}
+    .card.bloqueada{border-left-color:var(--lock);opacity:.55}
+    .card .edit{position:absolute;top:6px;right:6px;font-size:12px;color:var(--muted);padding:2px 6px;border-radius:6px}
+    .card .edit:hover{background:var(--soft)}
+    .grid.focus .card{opacity:.25}
+    .grid.focus .card.sel{opacity:1;outline-color:var(--accent)}
+    .grid.focus .card.pre{opacity:1;outline-color:var(--reg)}
+    .grid.focus .card.post{opacity:1;outline-color:var(--accent)}
+    .hint{max-width:1200px;margin:0 auto;padding:0 16px 10px;font-size:13px;color:var(--muted)}
+
+    dialog{border:0;border-radius:16px;padding:0;background:var(--card);color:var(--text);width:min(520px,calc(100% - 32px));box-shadow:0 20px 50px rgba(0,0,0,.3)}
+    dialog::backdrop{background:rgba(0,0,0,.4)}
+    .dlg{padding:20px;display:flex;flex-direction:column;gap:12px}
+    .dlg h3{margin:0}
+    label{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-bottom:4px}
+    input,select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+    .row{display:flex;gap:10px}.row>div{flex:1}
+    .corr{max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px}
+    .corr .it{display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:14px}
+    .corr .it span{flex:1}
+    .corr select{width:auto;padding:4px 6px}
+    .dlg .foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+    /* Dentro de la app de asistencia */
+    .embedded body{background:transparent}
+    .embedded header{padding:4px 0 8px}
+    .embedded header h1,.embedded .standalone{display:none}
+    .embedded .summary,.embedded .hint,.embedded .grid{padding-left:0;padding-right:0}
+    .embedded .bar{margin-left:0;margin-right:0}
+    .embedded .grid{padding-bottom:8px}
+    .empty{max-width:600px;margin:40px auto;text-align:center;padding:0 16px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Correlatividades</h1>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="openEdit()">+ Materia</button>
+      <button class="btn btn-secondary" onclick="resetPlan()">Plan UCC 2019</button>
+      <button class="btn btn-secondary" onclick="exportJSON()">Exportar</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('file').click()">Importar</button>
+      <a class="btn btn-secondary standalone" href="index.html" style="text-decoration:none;color:inherit">Asistencia</a>
+      <input id="file" type="file" accept="application/json" class="hidden" onchange="importJSON(this)">
+    </div>
+  </header>
+  <div class="summary">
+    <span id="stats"></span>
+    <span class="legend">
+      <span><i class="dot" style="background:var(--ok)"></i>Aprobada</span>
+      <span><i class="dot" style="background:var(--reg)"></i>Regular</span>
+      <span><i class="dot" style="background:var(--accent)"></i>Podés cursar</span>
+      <span><i class="dot" style="background:var(--lock)"></i>Bloqueada</span>
+    </span>
+  </div>
+  <div class="bar"><div id="prog"></div></div>
+  <div class="hint">Tocá una materia para ver sus correlativas (amarillo) y las que habilita (azul). Tocala de nuevo para cambiar su estado. * = se puede rendir libre si la escolaridad lo permite.</div>
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty hidden">
+    <p class="muted">Todavía no cargaste materias. Agregalas con “+ Materia” indicando año, cuatrimestre y correlativas, o importá un plan en JSON.</p>
+  </div>
+
+  <dialog id="dlg">
+    <form class="dlg" method="dialog" onsubmit="save(event)">
+      <h3 id="dlgTitle">Materia</h3>
+      <div><label>Nombre</label><input id="fName" required></div>
+      <div class="row">
+        <div><label>Año</label><input id="fYear" type="number" min="1" max="10" value="1" required></div>
+        <div><label>Cuatrimestre</label>
+          <select id="fSem"><option value="1">1.º</option><option value="2">2.º</option><option value="0">Anual</option></select></div>
+        <div><label>Estado</label>
+          <select id="fState"><option value="pendiente">Pendiente</option><option value="regular">Regular</option><option value="aprobada">Aprobada</option></select></div>
+      </div>
+      <div>
+        <label>Correlativas (qué necesitás de cada una para cursar esta)</label>
+        <div id="fCorr" class="corr"></div>
+      </div>
+      <div class="foot">
+        <button type="button" id="delBtn" class="btn btn-danger" onclick="del()">Eliminar</button>
+        <span style="flex:1"></span>
+        <button type="button" class="btn btn-secondary" onclick="dlg.close()">Cancelar</button>
+        <button class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+const KEY = "malla-v1";
+// Plan de estudios 2019 de Abogacía (UCC). Cada correlativa se necesita regular para cursar y aprobada para rendir.
+const PLAN_UCC_2019 = [{"id":"10026","name":"Derecho Privado I","year":1,"sem":1,"state":"pendiente","reqs":[]},{"id":"10027","name":"Derecho Romano","year":1,"sem":1,"state":"pendiente","reqs":[]},{"id":"10028","name":"Derecho Político","year":1,"sem":1,"state":"pendiente","reqs":[]},{"id":"10029","name":"Pensamiento Filosófico","year":1,"sem":1,"state":"pendiente","reqs":[]},{"id":"20020","name":"Derecho Privado II","year":1,"sem":2,"state":"pendiente","reqs":[{"id":"10026","need":"regular"}]},{"id":"20021","name":"Derecho Penal I","year":1,"sem":2,"state":"pendiente","reqs":[]},{"id":"20022","name":"Derechos Humanos","year":1,"sem":2,"state":"pendiente","reqs":[]},{"id":"20023","name":"Derecho Constitucional","year":1,"sem":2,"state":"pendiente","reqs":[{"id":"10028","need":"regular"}]},{"id":"20024","name":"Antropología","year":1,"sem":2,"state":"pendiente","reqs":[{"id":"10029","need":"regular"}],"libre":true},{"id":"10030","name":"Derecho Privado III","year":2,"sem":1,"state":"pendiente","reqs":[{"id":"20020","need":"regular"}],"libre":true},{"id":"10031","name":"Derecho Penal II","year":2,"sem":1,"state":"pendiente","reqs":[{"id":"20021","need":"regular"}]},{"id":"10032","name":"Historia del Derecho","year":2,"sem":1,"state":"pendiente","reqs":[]},{"id":"20025","name":"Derecho Público Provincial y Municipal","year":2,"sem":1,"state":"pendiente","reqs":[{"id":"20023","need":"regular"}]},{"id":"10033","name":"Pensamiento Teológico","year":2,"sem":1,"state":"pendiente","reqs":[],"libre":true},{"id":"20026","name":"Derecho Privado IV","year":2,"sem":2,"state":"pendiente","reqs":[{"id":"10030","need":"regular"}],"libre":true},{"id":"20027","name":"Derecho Procesal Civil","year":2,"sem":2,"state":"pendiente","reqs":[]},{"id":"20028","name":"Práctica Profesional I","year":2,"sem":2,"state":"pendiente","reqs":[]},{"id":"20029","name":"Pensamiento Social Cristiano","year":2,"sem":2,"state":"pendiente","reqs":[{"id":"10033","need":"regular"}],"libre":true},{"id":"20030","name":"Seminario Optativo I","year":2,"sem":2,"state":"pendiente","reqs":[]},{"id":"10034","name":"Derecho Privado V","year":3,"sem":1,"state":"pendiente","reqs":[{"id":"20026","need":"regular"}]},{"id":"10035","name":"Derecho del Trabajo","year":3,"sem":1,"state":"pendiente","reqs":[]},{"id":"10036","name":"Derecho Procesal Penal","year":3,"sem":1,"state":"pendiente","reqs":[{"id":"10031","need":"regular"}]},{"id":"10037","name":"Derecho Procesal Constitucional y Convencional","year":3,"sem":1,"state":"pendiente","reqs":[{"id":"20023","need":"regular"}]},{"id":"10038","name":"Solución Alternativa de Conflictos","year":3,"sem":1,"state":"pendiente","reqs":[]},{"id":"10039","name":"Sociología Jurídica","year":3,"sem":1,"state":"pendiente","reqs":[]},{"id":"20031","name":"Derecho Concursal","year":3,"sem":2,"state":"pendiente","reqs":[{"id":"10034","need":"regular"}],"libre":true},{"id":"20032","name":"Derecho Privado VI","year":3,"sem":2,"state":"pendiente","reqs":[{"id":"20026","need":"regular"}],"libre":true},{"id":"20033","name":"Práctica Profesional II","year":3,"sem":2,"state":"pendiente","reqs":[{"id":"20027","need":"regular"}]},{"id":"20034","name":"Filosofía del Derecho","year":3,"sem":2,"state":"pendiente","reqs":[],"libre":true},{"id":"20035","name":"Derecho de la Seguridad Social","year":3,"sem":2,"state":"pendiente","reqs":[]},{"id":"20036","name":"Seminario de Formación Humanística I","year":3,"sem":2,"state":"pendiente","reqs":[],"libre":true},{"id":"20037","name":"Seminario Optativo II","year":3,"sem":2,"state":"pendiente","reqs":[]},{"id":"10040","name":"Derecho Privado VII","year":4,"sem":1,"state":"pendiente","reqs":[]},{"id":"10041","name":"Derecho Privado VIII","year":4,"sem":1,"state":"pendiente","reqs":[{"id":"20026","need":"regular"}]},{"id":"10042","name":"Derecho Internacional Público","year":4,"sem":1,"state":"pendiente","reqs":[]},{"id":"10043","name":"Derecho Administrativo","year":4,"sem":1,"state":"pendiente","reqs":[{"id":"20025","need":"regular"}],"libre":true},{"id":"10044","name":"Seminario de Formación Humanística II","year":4,"sem":1,"state":"pendiente","reqs":[],"libre":true},{"id":"20040","name":"Derecho Procesal Laboral","year":4,"sem":1,"state":"pendiente","reqs":[{"id":"10035","need":"regular"}]},{"id":"20038","name":"Derecho Privado IX","year":4,"sem":2,"state":"pendiente","reqs":[{"id":"10040","need":"regular"}]},{"id":"20039","name":"Derecho Procesal Administrativo","year":4,"sem":2,"state":"pendiente","reqs":[{"id":"10043","need":"regular"}]},{"id":"20056","name":"Derechos de la Niñez, Adolescencia y Familia","year":4,"sem":2,"state":"pendiente","reqs":[{"id":"10040","need":"regular"}]},{"id":"20041","name":"Derecho Procesal de Familia","year":4,"sem":2,"state":"pendiente","reqs":[{"id":"10040","need":"regular"}]},{"id":"20042","name":"Práctica Profesional III","year":4,"sem":2,"state":"pendiente","reqs":[{"id":"10036","need":"regular"}]},{"id":"20043","name":"Derecho del Consumidor","year":4,"sem":2,"state":"pendiente","reqs":[{"id":"20025","need":"regular"}]},{"id":"20044","name":"Ética y Deontología","year":4,"sem":2,"state":"pendiente","reqs":[],"libre":true},{"id":"20045","name":"Seminario Optativo III","year":4,"sem":2,"state":"pendiente","reqs":[]},{"id":"10045","name":"Derecho Ambiental y de los Recursos Naturales","year":5,"sem":1,"state":"pendiente","reqs":[],"libre":true},{"id":"10046","name":"Derecho Internacional Privado","year":5,"sem":1,"state":"pendiente","reqs":[{"id":"20026","need":"regular"}],"libre":true},{"id":"10047","name":"Finanzas y Derecho Tributario","year":5,"sem":1,"state":"pendiente","reqs":[{"id":"20025","need":"regular"}]},{"id":"10048","name":"Práctica Profesional IV","year":5,"sem":1,"state":"pendiente","reqs":[{"id":"20033","need":"regular"}]},{"id":"10049","name":"Derecho Privado X","year":5,"sem":1,"state":"pendiente","reqs":[{"id":"20031","need":"regular"}]},{"id":"10050","name":"Seminario Optativo IV","year":5,"sem":1,"state":"pendiente","reqs":[]},{"id":"20046","name":"Argumentación Jurídica","year":5,"sem":2,"state":"pendiente","reqs":[{"id":"20034","need":"regular"}]},{"id":"20047","name":"Metodología de la Investigación Jurídica","year":5,"sem":2,"state":"pendiente","reqs":[]},{"id":"20048","name":"Técnicas de Litigación Oral","year":5,"sem":2,"state":"pendiente","reqs":[]},{"id":"20049","name":"Práctica Profesional Supervisada","year":5,"sem":2,"state":"pendiente","reqs":[{"id":"20042","need":"regular"},{"id":"20033","need":"regular"}]},{"id":"20057","name":"Derecho de los Medios de Transporte","year":5,"sem":2,"state":"pendiente","reqs":[]},{"id":"20058","name":"Derecho Bursátil y Cambiario","year":5,"sem":2,"state":"pendiente","reqs":[{"id":"10049","need":"regular"}]},{"id":"20051","name":"Idioma Extranjero","year":5,"sem":2,"state":"pendiente","reqs":[]}];
+const STATES = ["pendiente", "regular", "aprobada"];
+let data = load();
+let selected = null, editing = null;
+const dlg = document.getElementById("dlg");
+
+function load(){
+  try { return JSON.parse(localStorage.getItem(KEY)) || planUCC(); }
+  catch { return planUCC(); }
+}
+function planUCC(){ return { subjects: structuredClone(PLAN_UCC_2019) }; }
+function resetPlan(){
+  if (data.subjects.length && !confirm("Esto reemplaza tus correlatividades por el plan 2019 de Abogacía UCC (se pierden los estados). ¿Seguir?")) return;
+  data = planUCC(); selected = null; persist(); render();
+}
+// Dentro de la app, los datos los guarda y sincroniza la página principal.
+const EMBEDDED = window.parent !== window;
+function persist(){
+  data.updatedAt = Date.now();
+  if (EMBEDDED) parent.postMessage({ correlativasSave: data }, location.origin);
+  else try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+}
+const byId = id => data.subjects.find(s => s.id === id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+// Una correlativa "regular" se cumple con la materia regular o aprobada; una "aprobada", sólo aprobada.
+function meets(req){
+  const s = byId(req.id);
+  if (!s) return true;
+  return req.need === "regular" ? s.state !== "pendiente" : s.state === "aprobada";
+}
+function missing(s){ return (s.reqs || []).filter(r => !meets(r)); }
+function canTakeExam(s){ return s.state === "regular" && (s.reqs || []).every(r => byId(r.id)?.state === "aprobada" || !byId(r.id)); }
+
+function statusText(s){
+  if (s.state === "aprobada") return "Aprobada";
+  if (s.state === "regular") return canTakeExam(s) ? "Regular · podés rendir" : "Regular · faltan correlativas aprobadas para rendir";
+  const m = missing(s);
+  if (!m.length) return "Podés cursarla";
+  return "Falta: " + m.map(r => `${byId(r.id).name} (${r.need})`).join(", ");
+}
+
+function render(){
+  const grid = document.getElementById("grid");
+  const subs = data.subjects;
+  document.getElementById("empty").classList.toggle("hidden", subs.length > 0);
+  const ap = subs.filter(s => s.state === "aprobada").length;
+  const rg = subs.filter(s => s.state === "regular").length;
+  const av = subs.filter(s => s.state === "pendiente" && !missing(s).length).length;
+  document.getElementById("stats").textContent = subs.length
+    ? `${ap}/${subs.length} aprobadas · ${rg} regulares · ${av} disponibles para cursar` : "";
+  document.getElementById("prog").style.width = subs.length ? (ap / subs.length * 100) + "%" : "0";
+
+  const pre = new Set(), post = new Set();
+  if (selected){
+    (byId(selected)?.reqs || []).forEach(r => pre.add(r.id));
+    subs.forEach(s => (s.reqs || []).some(r => r.id === selected) && post.add(s.id));
+  }
+  grid.classList.toggle("focus", !!selected);
+
+  const years = [...new Set(subs.map(s => s.year))].sort((a, b) => a - b);
+  grid.innerHTML = years.map(y => {
+    const inYear = subs.filter(s => s.year === y);
+    const groups = [[0, "Anuales"], [1, "1.er cuatrimestre"], [2, "2.º cuatrimestre"]]
+      .map(([k, label]) => [label, inYear.filter(s => +s.sem === k)]).filter(g => g[1].length);
+    return `<section class="year"><h2>${y}.º año</h2>${groups.map(([label, list]) =>
+      `<div class="sem">${label}</div>` + list.map(s => {
+        const cls = s.state !== "pendiente" ? s.state : missing(s).length ? "bloqueada" : "";
+        const hl = s.id === selected ? "sel" : pre.has(s.id) ? "pre" : post.has(s.id) ? "post" : "";
+        return `<div class="card ${cls} ${hl}" role="button" tabindex="0" onclick="tap('${s.id}')">
+          <div class="name">${esc(s.name)}${s.libre ? ` <span class="muted" title="Se puede rendir libre si la escolaridad lo permite">*</span>` : ""}</div><div class="st">${esc(statusText(s))}</div>
+          <button class="edit" onclick="event.stopPropagation();openEdit('${s.id}')">Editar</button></div>`;
+      }).join("")).join("")}</section>`;
+  }).join("");
+}
+
+function tap(id){
+  if (selected === id){
+    const s = byId(id);
+    s.state = STATES[(STATES.indexOf(s.state) + 1) % STATES.length];
+    persist();
+  } else selected = id;
+  render();
+}
+document.addEventListener("click", e => {
+  if (!e.target.closest(".card") && !e.target.closest("dialog") && selected){ selected = null; render(); }
+});
+
+function openEdit(id){
+  editing = id || null;
+  const s = id ? byId(id) : { name: "", year: 1, sem: 1, state: "pendiente", reqs: [] };
+  document.getElementById("dlgTitle").textContent = id ? "Editar materia" : "Nueva materia";
+  fName.value = s.name; fYear.value = s.year; fSem.value = s.sem; fState.value = s.state;
+  document.getElementById("delBtn").classList.toggle("hidden", !id);
+  const others = data.subjects.filter(o => o.id !== id).sort((a, b) => a.year - b.year || a.name.localeCompare(b.name));
+  fCorr.innerHTML = others.length ? others.map(o => {
+    const r = (s.reqs || []).find(r => r.id === o.id);
+    const v = r ? r.need : "";
+    return `<div class="it"><span>${esc(o.name)} <small class="muted">${o.year}.º</small></span>
+      <select data-id="${o.id}"><option value="" ${!v ? "selected" : ""}>—</option>
+      <option value="regular" ${v === "regular" ? "selected" : ""}>Regular</option>
+      <option value="aprobada" ${v === "aprobada" ? "selected" : ""}>Aprobada</option></select></div>`;
+  }).join("") : `<div class="it muted">No hay otras materias cargadas.</div>`;
+  dlg.showModal();
+}
+
+function save(e){
+  e.preventDefault();
+  const reqs = [...fCorr.querySelectorAll("select")].filter(x => x.value).map(x => ({ id: x.dataset.id, need: x.value }));
+  const vals = { name: fName.value.trim(), year: +fYear.value, sem: +fSem.value, state: fState.value, reqs };
+  if (editing) Object.assign(byId(editing), vals);
+  else data.subjects.push({ id: Math.random().toString(36).slice(2, 10), ...vals });
+  persist(); dlg.close(); render();
+}
+
+function del(){
+  if (!confirm("¿Eliminar esta materia?")) return;
+  data.subjects = data.subjects.filter(s => s.id !== editing);
+  data.subjects.forEach(s => s.reqs = (s.reqs || []).filter(r => r.id !== editing));
+  if (selected === editing) selected = null;
+  persist(); dlg.close(); render();
+}
+
+function exportJSON(){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = "correlatividades.json"; a.click();
+}
+function importJSON(input){
+  const f = input.files[0]; if (!f) return;
+  f.text().then(t => {
+    const d = JSON.parse(t);
+    if (!Array.isArray(d.subjects)) throw 0;
+    if (data.subjects.length && !confirm("Esto reemplaza tus correlatividades actual. ¿Seguir?")) return;
+    data = d; selected = null; persist(); render();
+  }).catch(() => alert("El archivo no es un plan de correlatividades válido.")).finally(() => input.value = "");
+}
+
+render();
+
+if (EMBEDDED){
+  document.documentElement.classList.add("embedded");
+  const report = () => parent.postMessage({ correlatividadesHeight: document.documentElement.scrollHeight }, location.origin);
+  new ResizeObserver(report).observe(document.body);
+  window.addEventListener("message", e => {
+    if (e.origin !== location.origin || !e.data || !("correlativas" in e.data)) return;
+    if (e.data.correlativas) data = e.data.correlativas;
+    // Todavía no hay nada en la cuenta: subir lo que se haya marcado antes en este dispositivo.
+    else if (data.updatedAt) persist();
+    render();
+  });
+  parent.postMessage({ correlatividadesReady: true }, location.origin);
+  report();
+}
+</script>
+</body>
+</html>
