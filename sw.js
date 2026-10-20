@@ -1,6 +1,6 @@
 // Permite abrir la app sin conexión. Siempre intenta la red primero
 // (así ves la última versión) y usa la copia guardada si no hay internet.
-const CACHE = "asistencia-v2";
+const CACHE = "asistencia-v3";
 const ASSETS = [
   "./",
   "./index.html",
