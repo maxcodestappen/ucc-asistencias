@@ -2,419 +2,358 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Mi Asistencia</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="theme-color" content="#2563eb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root{
-      --bg:#f5f7fb; --card:#fff; --text:#182230; --muted:#667085; --border:#e4e7ec;
-      --accent:#2563eb; --accent-soft:#dbeafe; --present:#15803d; --present-soft:#dcfce7;
-      --absent:#dc2626; --absent-soft:#fee2e2; --nodata:#6b7280; --nodata-soft:#eef2f6;
-      --warn:#b45309; --warn-soft:#fef3c7; --shadow:0 14px 35px rgba(16,24,40,.07);
-      --soft:#f8fafc; --warn-border:#fed7aa;
+      --bg:#f5f7fb; --card:#fff; --soft:#f2f4f8; --text:#182230; --muted:#667085; --border:#e4e7ec;
+      --accent:#2563eb; --accent-soft:#dbeafe; --on-accent:#fff;
+      --present:#15803d; --present-soft:#dcfce7;
+      --absent:#dc2626; --absent-soft:#fee2e2;
+      --nodata:#6b7280; --nodata-soft:#eef2f6;
+      --warn:#b45309; --warn-soft:#fef3c7;
+      --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.05);
+      --radius:16px;
       color-scheme:light;
     }
     @media (prefers-color-scheme:dark){
       :root{
-        --bg:#0f141b; --card:#171e27; --text:#e6eaf0; --muted:#98a2b3; --border:#2a3441;
-        --accent:#60a5fa; --accent-soft:#1e3a5f; --present:#4ade80; --present-soft:#14532d;
-        --absent:#f87171; --absent-soft:#5c1d1d; --nodata:#a3acb9; --nodata-soft:#262f3b;
-        --warn:#fbbf24; --warn-soft:#3d2e0a; --warn-border:#6b4f12;
-        --soft:#1d2530; --shadow:0 14px 35px rgba(0,0,0,.35);
+        --bg:#0f141b; --card:#171e27; --soft:#1f2732; --text:#e6eaf0; --muted:#98a2b3; --border:#2a3441;
+        --accent:#60a5fa; --accent-soft:#1e3a5f; --on-accent:#0f141b;
+        --present:#4ade80; --present-soft:#14532d;
+        --absent:#f87171; --absent-soft:#5c1d1d;
+        --nodata:#a3acb9; --nodata-soft:#262f3b;
+        --warn:#fbbf24; --warn-soft:#3d2e0a;
+        --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
         color-scheme:dark;
       }
-      .primary{color:#0f141b}
     }
-    .subject-edit{padding:12px 0;border-top:1px solid var(--border)}
-    .subject-edit:first-child{border-top:0}
-    .subject-edit-top{display:flex;gap:8px;align-items:center}
-    .subject-edit-top input{font-weight:800}
-    .subject-edit-pcts{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
-    .subject-edit-pcts label{display:flex;align-items:center;gap:6px;margin:0}
-    .subject-edit-pcts input{width:70px;padding:6px 8px}
-    .warning-banner.danger{background:var(--absent-soft);color:var(--absent);border-color:var(--absent)}
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
-    .app{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
-    header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
-    h1{margin:0;font-size:clamp(30px,5vw,44px);letter-spacing:-.04em}
-    .subtitle{margin-top:6px;color:var(--muted)}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    button,.file-label{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:750;cursor:pointer;transition:.15s ease}
-    button:hover,.file-label:hover{transform:translateY(-1px)}
-    .primary{background:var(--accent);color:#fff}
-    .secondary,.file-label{background:var(--card);color:var(--text);border:1px solid var(--border)}
-    .danger{background:var(--absent-soft);color:var(--absent)}
-    input[type=file]{display:none}
-    .tabs{display:flex;gap:8px;margin-bottom:16px}
-    .tab{background:var(--card);border:1px solid var(--border);color:var(--muted)}
-    .tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
-    .overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-    .metric{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
-    .metric strong{display:block;font-size:26px;letter-spacing:-.03em}
-    .metric span{font-size:12px;color:var(--muted)}
-    .week-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
-    .week-title{font-size:18px;font-weight:850}
-    .week-grid{display:grid;gap:14px}
-    .day-card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
-    .day-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
-    .day-head h2{font-size:18px;margin:0}
-    .day-date{font-size:13px;color:var(--muted)}
-    .classes{display:grid;gap:0}
-    .class-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-top:1px solid var(--border)}
-    .class-row:first-child{border-top:0}
-    .class-name{font-weight:800}
-    .class-meta{font-size:12px;color:var(--muted);margin-top:3px}
-    .class-main{display:flex;align-items:center;gap:12px;min-width:0}
-    .class-pct{
-      min-width:72px;
-      text-align:center;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:8px 10px;
-      background:var(--soft);
-    }
-    .class-pct strong{
-      display:block;
-      font-size:20px;
-      line-height:1;
-      letter-spacing:-.03em;
-    }
-    .class-pct span{
-      display:block;
-      margin-top:4px;
-      font-size:10px;
-      color:var(--muted);
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-    }
-    .thresholds{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
-    .threshold{
-      display:inline-flex;
-      align-items:center;
-      border-radius:999px;
-      padding:5px 8px;
-      font-size:11px;
-      font-weight:800;
-      background:var(--soft);
-      color:var(--muted);
-    }
-    .threshold.ok60{background:var(--present-soft);color:var(--present)}
-    .threshold.ok80{background:var(--accent-soft);color:var(--accent)}
-    .threshold.lost{background:var(--absent-soft);color:var(--absent)}
-    .state-btn{min-width:120px}
-    .state-present{background:var(--present-soft);color:var(--present)}
-    .state-absent{background:var(--absent-soft);color:var(--absent)}
-    .state-noclass{background:var(--nodata-soft);color:var(--nodata)}
-    .empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;background:var(--card)}
-    .settings-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-    .half{grid-column:span 6}.full{grid-column:span 12}
-    .section-title{font-size:18px;font-weight:850;margin:0 0 14px}
-    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
-    .field{grid-column:span 6}.field.full{grid-column:span 12}
-    label{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:6px}
-    input,select{width:100%;border:1px solid var(--border);border-radius:12px;padding:11px 12px;font:inherit;background:var(--card);color:var(--text);outline:none}
+    html{-webkit-text-size-adjust:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+    button,input,select{font:inherit;color:inherit}
+    button{cursor:pointer;border:0;background:none;padding:0}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .small{font-size:13px}
+
+    /* Botones */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:10px 14px;font-weight:600;transition:background .15s,opacity .15s}
+    .btn:active{opacity:.8}
+    .btn-primary{background:var(--accent);color:var(--on-accent)}
+    .btn-secondary{background:var(--card);border:1px solid var(--border)}
+    .btn-danger{background:var(--absent-soft);color:var(--absent)}
+    .btn-ghost{color:var(--muted);padding:6px 8px;font-weight:500}
+    .icon-btn{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+    .icon-btn:hover{background:var(--soft)}
+    .icon-btn svg{width:22px;height:22px}
+
+    /* Campos */
+    label{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-bottom:6px}
+    input,select{width:100%;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--card);outline:none}
     input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-    .toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
-    .toolbar .grow{flex:1 1 180px}
-    .list{display:grid;gap:8px;margin-top:12px}
-    .list-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--border)}
-    .list-row:first-child{border-top:0}
-    .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-    .day-config{border:1px solid var(--border);border-radius:14px;padding:12px;background:var(--soft)}
-    .day-config strong{display:block;font-size:13px;margin-bottom:8px}
-    .pill{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:7px 9px;background:var(--card);margin-top:6px;font-size:12px}
-    .attendance-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .subject-summary{border:1px solid var(--border);border-radius:16px;padding:15px;background:var(--card)}
-    .summary-top{display:flex;justify-content:space-between;gap:10px}
-    .summary-name{font-weight:850}
-    .summary-pct{font-size:24px;font-weight:900}
-    .summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-    .smallstat{background:var(--soft);border-radius:10px;padding:9px;text-align:center}
-    .smallstat strong{display:block}.smallstat span{font-size:11px;color:var(--muted)}
-    .note{font-size:12px;color:var(--muted);margin-top:8px}
-    
-    .subject-link{cursor:pointer}
-    .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
-    .detail-title{margin:0;font-size:28px;letter-spacing:-.03em}
-    .detail-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-    .detail-metric{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-    .detail-metric strong{display:block;font-size:22px}
-    .detail-metric span{font-size:11px;color:var(--muted)}
-    .calendar-wrap{display:grid;gap:16px}
-    .month-card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:16px}
-    .month-title{font-size:18px;font-weight:850;margin:0 0 12px;text-transform:capitalize}
-    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-    .weekday{font-size:11px;color:var(--muted);font-weight:800;text-align:center;padding:4px 0}
-    .cal-day{min-height:74px;border:1px solid var(--border);border-radius:12px;padding:7px;background:var(--soft);display:flex;flex-direction:column;justify-content:space-between}
-    .cal-day.empty-day{visibility:hidden}
-    .cal-day.nonclass{opacity:.42}
-    .cal-date{font-size:12px;font-weight:800}
-    .cal-state{width:100%;padding:7px 6px;border-radius:9px;font-size:11px}
-    .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-    .legend span{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
-    .legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+    /* Barra superior */
+    .topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding-top:env(safe-area-inset-top)}
+    .topbar-inner{max-width:760px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:8px;min-height:56px}
+    .topbar h1{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;flex:1;display:flex;align-items:center;gap:8px}
+    .topbar h1 img{width:26px;height:26px;border-radius:7px}
+    .sync-error{font-size:12px;color:var(--absent);font-weight:600}
+    .more-wrap{position:relative}
+    .more-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:190px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:6px;z-index:30}
+    .more-menu button,.more-menu label{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:9px;font-size:14px;color:var(--text);margin:0;cursor:pointer;font-weight:500}
+    .more-menu button:hover,.more-menu label:hover{background:var(--soft)}
+    .more-menu input{display:none}
+
+    /* Contenido */
+    .app{max-width:760px;margin:0 auto;padding:14px 16px calc(96px + env(safe-area-inset-bottom))}
+    .view-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:6px 0 14px}
+
+    /* Resumen compacto */
+    .summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+    .summary-item{display:inline-flex;align-items:baseline;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
+    .summary-item strong{color:var(--text);font-weight:700;font-size:14px}
+
+    /* Navegación de semana */
+    .week-nav{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+    .week-title{flex:1;text-align:center;font-weight:600}
+    .week-nav .icon-btn{background:var(--card);border:1px solid var(--border);color:var(--text)}
+    .today-btn{padding:8px 12px;font-size:14px}
+
+    /* Días y clases */
+    .day-group{margin-bottom:18px}
+    .day-label{display:flex;align-items:center;gap:8px;margin:0 2px 8px;font-size:14px;font-weight:600}
+    .day-label .date{color:var(--muted);font-weight:500}
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em}
+    .badge-today{background:var(--accent);color:var(--on-accent)}
+    .badge-off{background:var(--nodata-soft);color:var(--nodata)}
+    .day-group.future .subject-card{opacity:.85}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .subject-card{padding:14px;margin-bottom:10px}
+    .day-group.today .subject-card{border-color:color-mix(in srgb,var(--accent) 45%,var(--border))}
+    .subject-head{display:flex;align-items:center;gap:10px;cursor:pointer}
+    .subject-name{flex:1;font-weight:600;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .subject-pct{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+    .chev{color:var(--muted);width:18px;height:18px;flex:none}
+
+    /* Barra de progreso con marcas en regular y promoción */
+    .bar{position:relative;height:8px;border-radius:999px;background:var(--soft);margin:10px 0 8px}
+    .bar-fill{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--present)}
+    .bar-fill.warn{background:var(--warn)}
+    .bar-fill.lost{background:var(--absent)}
+    .bar-mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);opacity:.35;border-radius:2px}
+
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{display:inline-flex;align-items:center;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600}
+    .chip.ok{background:var(--present-soft);color:var(--present)}
+    .chip.warn{background:var(--warn-soft);color:var(--warn)}
+    .chip.lost{background:var(--absent-soft);color:var(--absent)}
+
+    /* Selector Presente / Ausente / No se dio */
+    .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px;background:var(--soft);border-radius:12px;padding:4px}
+    .seg button{padding:9px 4px;border-radius:9px;font-size:13px;font-weight:600;color:var(--muted)}
+    .off-note{margin-top:12px;padding:10px;border-radius:12px;background:var(--nodata-soft);color:var(--nodata);font-size:13px;font-weight:600;text-align:center}
+    .seg button.on.present{background:var(--present-soft);color:var(--present)}
+    .seg button.on.absent{background:var(--absent-soft);color:var(--absent)}
+    .seg button.on.noclass{background:var(--card);color:var(--nodata);box-shadow:var(--shadow)}
+
+    .empty{padding:28px 18px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:var(--radius);background:var(--card)}
+    .empty .btn{margin-top:12px}
+
+    /* Detalle de materia */
+    .back{margin:0 0 6px -6px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+    .stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 6px;text-align:center}
+    .stat strong{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+    .stat span{font-size:11px;color:var(--muted)}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0 10px;font-size:12px;color:var(--muted)}
+    .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+    .month{padding:14px;margin-bottom:12px}
+    .month-nav{display:flex;align-items:center;justify-content:space-between;margin:-4px -4px 8px}
+    .month-nav h3{margin:0;font-size:15px;font-weight:600}
+    .month-nav .icon-btn:disabled{opacity:.3;cursor:default}
+    .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+    .cal .wd{font-size:11px;color:var(--muted);text-align:center;padding-bottom:2px}
+    .cal .d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-radius:9px;opacity:.5}
+    .cal button.d{opacity:1;font-weight:700;font-size:13px}
+    .cal .d.present{background:var(--present-soft);color:var(--present)}
+    .cal .d.absent{background:var(--absent-soft);color:var(--absent)}
+    .cal .d.noclass{background:var(--nodata-soft);color:var(--nodata);text-decoration:line-through}
+    .cal .d.today{outline:2px solid var(--accent);outline-offset:1px}
     .dot-present{background:var(--present)} .dot-absent{background:var(--absent)} .dot-noclass{background:var(--nodata)}
 
-    .auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.auth-card{width:min(100%,430px);background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:22px}.auth-fields{display:grid;gap:12px}.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.auth-message,.sync-status{font-size:12px;color:var(--muted);margin-top:10px}.hidden{display:none!important}
-    .ghost{background:transparent;color:var(--muted);padding:6px 8px}
-    @media(max-width:850px){.overview{grid-template-columns:repeat(2,1fr)}.half{grid-column:span 12}.days{grid-template-columns:repeat(2,1fr)}.attendance-list{grid-template-columns:1fr}}
-    @media(max-width:620px){header{flex-direction:column}.week-nav{align-items:flex-start;flex-direction:column}.class-row{align-items:stretch;flex-direction:column}.class-main{width:100%}.state-btn{width:100%}.field{grid-column:span 12}.days{grid-template-columns:1fr}.overview{grid-template-columns:1fr 1fr}.detail-summary{grid-template-columns:1fr 1fr}.calendar-grid{gap:4px}.cal-day{min-height:66px;padding:5px}.cal-state{font-size:10px;padding:6px 4px}}
-  
-    /* Compact dashboard layout */
-    header{align-items:center;margin-bottom:12px}
-    header h1{font-size:clamp(28px,4vw,38px)}
-    header .subtitle{display:none}
+    /* Ajustes */
+    .section{padding:16px;margin-bottom:14px}
+    .section h2{margin:0 0 12px;font-size:16px;font-weight:600}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .add-row{display:flex;gap:8px;align-items:flex-end}
+    .add-row>div{flex:1}
+    .subj-edit{border-top:1px solid var(--border);padding:14px 0 4px}
+    .subj-edit:first-of-type{border-top:0}
+    .subj-edit-top{display:flex;gap:6px;align-items:center}
+    .subj-edit-top input{font-weight:600}
+    .days{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+    .days button{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-size:13px;font-weight:600;color:var(--muted)}
+    .days button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+    .pcts{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+    .pcts label{display:flex;align-items:center;gap:6px;margin:0}
+    .pcts input{width:64px;padding:6px 8px;text-align:center}
+    .list-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
+    .list-row:first-child{border-top:0}
+    .data-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .data-actions input{display:none}
+    .note{font-size:13px;color:var(--muted);margin:0}
 
-    /* Tabs remain in DOM so existing JS keeps working, but are not shown */
-    .tabs{display:none}
+    /* Navegación inferior */
+    .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+    .tabbar-inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+    .tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 10px;font-size:11px;font-weight:600;color:var(--muted)}
+    .tabbar button svg{width:22px;height:22px}
+    .tabbar button.active{color:var(--accent)}
 
-    /* One unified metrics bar */
-    .overview{
-      grid-template-columns:repeat(4,1fr);
-      gap:0;
-      margin-bottom:14px;
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    .overview .metric{
-      border:0;
-      border-radius:0;
-      box-shadow:none;
-      padding:14px 16px;
-    }
-    .overview .metric + .metric{border-left:1px solid var(--border)}
-    .overview .metric strong{font-size:24px}
-    .overview .metric span{font-size:11px}
+    /* Inicio de sesión */
+    .auth-shell{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(circle at 50% 0%,var(--accent-soft),transparent 60%),var(--bg)}
+    .auth-card{width:min(100%,400px);background:var(--card);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);padding:28px 22px}
+    .auth-logo{width:56px;height:56px;border-radius:15px;display:block;margin:0 auto 14px}
+    .auth-card h1{margin:0;text-align:center;font-size:24px;font-weight:700;letter-spacing:-.02em}
+    .auth-card .subtitle{text-align:center;color:var(--muted);margin:6px 0 20px;font-size:14px}
+    .auth-fields{display:grid;gap:12px}
+    .auth-actions{display:grid;gap:8px;margin-top:16px}
+    .auth-links{text-align:center;margin-top:10px}
+    .auth-message{font-size:13px;color:var(--muted);margin-top:10px;text-align:center;min-height:1em}
 
-    /* Week navigation */
-    .week-nav{margin-bottom:12px}
-    .week-inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .compact-nav{padding:8px 11px;min-width:38px}
-    .week-title{min-width:max-content}
-
-    /* More compact class cards */
-    .class-row{padding:14px 16px}
-    .class-pct{min-width:68px;padding:7px 9px}
-    .class-pct strong{font-size:19px}
-    .thresholds{gap:5px;margin-top:6px}
-    .threshold{padding:4px 8px;font-size:10px}
-    .state-btn{min-width:112px;padding:9px 11px}
-
-    @media(max-width:850px){
-      .overview{grid-template-columns:repeat(2,1fr)}
-      .overview .metric:nth-child(3){border-left:0;border-top:1px solid var(--border)}
-      .overview .metric:nth-child(4){border-top:1px solid var(--border)}
+    @media (max-width:420px){
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .seg button{font-size:12px}
     }
-
-    @media(max-width:620px){
-      header{align-items:flex-start}
-      .overview{grid-template-columns:repeat(2,1fr)}
-      .overview .metric{padding:12px}
-      .week-nav{gap:8px}
-      .week-inline{width:100%}
-    }
-
-  
-    /* v6 refinements */
-    .day-card.today-card{border:2px solid var(--accent)}
-    .today-badge{
-      display:inline-flex;align-items:center;margin-left:8px;padding:3px 7px;
-      border-radius:999px;background:var(--accent-soft);color:var(--accent);
-      font-size:10px;font-weight:900;vertical-align:middle
-    }
-    .day-card.future-day{opacity:.72}
-    .day-card.future-day .state-btn{opacity:.82}
-    .threshold{font-size:10px}
-    .more-wrap{position:relative}
-    .more-menu{
-      position:absolute;right:0;top:calc(100% + 8px);z-index:50;min-width:180px;
-      background:var(--card);border:1px solid var(--border);border-radius:12px;
-      box-shadow:var(--shadow);padding:6px
-    }
-    .more-menu button,.more-menu .file-label{
-      display:block;width:100%;text-align:left;background:var(--card);border:0;
-      padding:9px 10px;border-radius:8px;font-size:13px
-    }
-    .more-menu button:hover,.more-menu .file-label:hover{background:var(--soft);transform:none}
-    .warning-banner{
-      margin:0 0 12px;padding:11px 14px;border:1px solid var(--warn-border);
-      border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:750
-    }
-    .metric-subject{
-      display:block;margin-top:3px;font-size:10px;color:var(--muted);
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis
-    }
-
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 </head>
-<body><div id="authShell" class="auth-shell"><div class="auth-card"><h1>Mi asistencia</h1><p class="subtitle">Iniciá sesión para sincronizar tus datos entre dispositivos.</p><div class="auth-fields"><div><label>Email</label><input id="authEmail" type="email" autocomplete="email"></div><div><label>Contraseña</label><input id="authPassword" type="password" autocomplete="current-password"></div></div><div class="auth-actions"><button class="primary" onclick="login()">Iniciar sesión</button><button class="secondary" onclick="signup()">Crear cuenta</button></div><button class="ghost" style="margin-top:8px" onclick="forgotPassword()">Olvidé mi contraseña</button><div id="authMessage" class="auth-message"></div></div></div>
-<div id="recoveryShell" class="auth-shell hidden"><div class="auth-card"><h1>Nueva contraseña</h1><p class="subtitle">Elegí una contraseña nueva para tu cuenta.</p><div class="auth-fields"><div><label>Contraseña nueva</label><input id="newPassword" type="password" autocomplete="new-password"></div></div><div class="auth-actions" style="grid-template-columns:1fr"><button class="primary" onclick="saveNewPassword()">Guardar contraseña</button></div><div id="recoveryMessage" class="auth-message"></div></div></div>
-<div class="app" id="mainApp" style="display:none">
-  <header>
-    <div>
-      <h1>Mi asistencia</h1>
-      <div class="subtitle">Tus clases de la semana, con asistencia editable en un toque.</div>
+<body>
+
+<div id="authShell" class="auth-shell">
+  <div class="auth-card">
+    <img class="auth-logo" src="icon.svg" alt="">
+    <h1>Mi asistencia</h1>
+    <p class="subtitle">Llevá el control de tus faltas, regularidad y promoción.</p>
+    <div class="auth-fields">
+      <div><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email"></div>
+      <div><label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password"></div>
     </div>
-    <div class="actions">
-      <span id="syncStatus" class="sync-status" style="display:none"></span>
-      <button class="secondary" onclick="showTab('settings')">Configuración</button>
+    <div class="auth-actions">
+      <button class="btn btn-primary" onclick="login()">Iniciar sesión</button>
+      <button class="btn btn-secondary" onclick="signup()">Crear cuenta</button>
+    </div>
+    <div class="auth-links"><button class="btn-ghost small" onclick="forgotPassword()">Olvidé mi contraseña</button></div>
+    <div id="authMessage" class="auth-message"></div>
+  </div>
+</div>
+
+<div id="recoveryShell" class="auth-shell hidden">
+  <div class="auth-card">
+    <img class="auth-logo" src="icon.svg" alt="">
+    <h1>Nueva contraseña</h1>
+    <p class="subtitle">Elegí una contraseña nueva para tu cuenta.</p>
+    <div class="auth-fields"><div><label for="newPassword">Contraseña nueva</label><input id="newPassword" type="password" autocomplete="new-password"></div></div>
+    <div class="auth-actions"><button class="btn btn-primary" onclick="saveNewPassword()">Guardar contraseña</button></div>
+    <div id="recoveryMessage" class="auth-message"></div>
+  </div>
+</div>
+
+<div id="mainApp" style="display:none">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1><img src="icon.svg" alt="">Mi asistencia</h1>
+      <span id="syncStatus" class="sync-error hidden"></span>
       <div class="more-wrap">
-        <button class="secondary" onclick="toggleMoreMenu(event)" aria-label="Más opciones">•••</button>
+        <button class="icon-btn" onclick="toggleMoreMenu(event)" aria-label="Más opciones">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
         <div id="moreMenu" class="more-menu hidden">
-          <button onclick="exportData();closeMoreMenu()">Exportar</button>
-          <label class="file-label">Importar<input id="importFile" type="file" accept=".json,application/json" onchange="importData(event);closeMoreMenu()"></label>
+          <button onclick="exportData();closeMoreMenu()">Exportar copia</button>
+          <label>Importar copia<input type="file" accept=".json,application/json" onchange="importData(event);closeMoreMenu()"></label>
           <button onclick="logout()">Cerrar sesión</button>
         </div>
       </div>
     </div>
   </header>
 
-  <div class="tabs">
-    <button id="tabHome" class="tab active" onclick="showTab('home')">Semana</button>
-    <button id="tabSettings" class="tab" onclick="showTab('settings')">Configuración</button>
-  </div>
-
-  <section id="homeView">
-    <div class="overview">
-      <div class="metric"><strong id="overallPct">100%</strong><span>Asistencia global</span></div>
-      <div class="metric"><strong id="regularSubjects">0/0</strong><span>Materias regulares</span></div>
-      <div class="metric"><strong id="promoSubjects">0/0</strong><span>Materias promocionables</span></div>
-      <div class="metric"><strong id="tightestPromoMargin">—</strong><span id="tightestPromoLabel">hasta perder promoción</span><small id="tightestPromoSubject" class="metric-subject"></small></div>
-    </div>
-    <div id="attendanceWarnings"></div>
-
-    <div class="week-nav">
-      <div class="week-inline">
-        <button class="secondary compact-nav" onclick="changeWeek(-7)" aria-label="Semana anterior">‹</button>
+  <main class="app">
+    <section id="weekView">
+      <div class="summary" id="summary"></div>
+      <div class="week-nav">
+        <button class="icon-btn" onclick="changeWeek(-7)" aria-label="Semana anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
         <div class="week-title" id="weekTitle"></div>
-        <button class="secondary compact-nav" onclick="changeWeek(7)" aria-label="Semana siguiente">›</button>
-        <button class="secondary compact-nav" onclick="goCurrentWeek()">Hoy</button>
+        <button class="icon-btn" onclick="changeWeek(7)" aria-label="Semana siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+        <button class="btn btn-secondary today-btn" onclick="goCurrentWeek()">Hoy</button>
       </div>
-      <div class="note">Presente → Ausente → No se dio</div>
-    </div>
+      <div id="weekGrid"></div>
+    </section>
 
-    <div id="weekGrid" class="week-grid"></div>
-</section>
+    <section id="subjectsView" class="hidden">
+      <h2 class="view-title">Materias</h2>
+      <div class="summary" id="summary2"></div>
+      <div id="subjectsGrid"></div>
+    </section>
 
-  <section id="subjectDetailView" class="hidden">
-    <div class="detail-head">
-      <div>
-        <button class="secondary" onclick="closeSubjectDetail()">← Volver a la semana</button>
-        <h2 id="detailSubjectTitle" class="detail-title" style="margin-top:14px"></h2>
-        <div class="note">Tocá una clase en el calendario para cambiar: Presente → Ausente → No se dio.</div>
+    <section id="detailView" class="hidden">
+      <button class="btn-ghost back" onclick="closeSubjectDetail()">‹ Volver</button>
+      <h2 id="detailTitle" class="view-title" style="margin-top:0"></h2>
+      <div id="detailBar"></div>
+      <div class="stats">
+        <div class="stat"><strong id="detailPct"></strong><span>Asistencia</span></div>
+        <div class="stat"><strong id="detailPresent"></strong><span>Presentes</span></div>
+        <div class="stat"><strong id="detailAbsent"></strong><span>Ausentes</span></div>
+        <div class="stat"><strong id="detailNoClass"></strong><span>No se dieron</span></div>
       </div>
-    </div>
+      <div class="legend">
+        <span><i class="dot-present"></i>Presente</span>
+        <span><i class="dot-absent"></i>Ausente</span>
+        <span><i class="dot-noclass"></i>No se dio</span>
+        <span>· Tocá un día para cambiarlo</span>
+      </div>
+      <div id="detailCalendar"></div>
+    </section>
 
-    <div class="detail-summary">
-      <div class="detail-metric"><strong id="detailPct">100%</strong><span>Asistencia</span></div>
-      <div class="detail-metric"><strong id="detailPresent">0</strong><span>Presentes</span></div>
-      <div class="detail-metric"><strong id="detailAbsent">0</strong><span>Ausentes</span></div>
-      <div class="detail-metric"><strong id="detailNoClass">0</strong><span>No se dieron</span></div>
-    </div>
+    <section id="settingsView" class="hidden">
+      <h2 class="view-title">Ajustes</h2>
 
-    <div id="detailThresholds" class="thresholds" style="margin:0 0 14px"></div>
-
-    <div class="legend">
-      <span><i class="dot-present"></i> Presente</span>
-      <span><i class="dot-absent"></i> Ausente</span>
-      <span><i class="dot-noclass"></i> No se dio</span>
-    </div>
-
-    <div id="subjectCalendar" class="calendar-wrap"></div>
-  </section>
-
-  <section id="settingsView" class="hidden">
-    <div style="margin-bottom:14px">
-      <button class="secondary" onclick="showTab('home')">← Volver a la semana</button>
-    </div>
-    <div class="settings-grid">
-      <section class="card half">
-        <h2 class="section-title">Semestre</h2>
-        <div class="row">
-          <div class="field">
-            <label>Inicio de clases</label>
-            <input id="semesterStart" type="date" onchange="saveSemester()">
-          </div>
-          <div class="field">
-            <label>Fin de clases</label>
-            <input id="semesterEnd" type="date" onchange="saveSemester()">
-          </div>
+      <div class="card section">
+        <h2>Semestre</h2>
+        <div class="grid2">
+          <div><label for="semesterStart">Inicio de clases</label><input id="semesterStart" type="date" onchange="saveSemester()"></div>
+          <div><label for="semesterEnd">Fin de clases</label><input id="semesterEnd" type="date" onchange="saveSemester()"></div>
         </div>
-      </section>
+      </div>
 
-      <section class="card half">
-        <h2 class="section-title">Materias</h2>
-        <div class="toolbar">
-          <div class="grow">
-            <label>Nueva materia</label>
-            <input id="newSubject" placeholder="Ej. Derecho Administrativo">
-          </div>
-          <button class="primary" onclick="addSubject()">Agregar</button>
+      <div class="card section">
+        <h2>Materias</h2>
+        <div class="add-row">
+          <div><label for="newSubject">Nueva materia</label><input id="newSubject" placeholder="Ej. Derecho Administrativo" onkeydown="if(event.key==='Enter')addSubject()"></div>
+          <button class="btn btn-primary" onclick="addSubject()">Agregar</button>
         </div>
-        <div id="subjectsList" class="list"></div>
-      </section>
+        <div id="subjectsList" style="margin-top:6px"></div>
+      </div>
 
-      <section class="card full">
-        <h2 class="section-title">Días de cursado</h2>
-        <div class="toolbar" style="margin-bottom:14px">
-          <div class="grow">
-            <label>Día</label>
-            <select id="scheduleDay"></select>
-          </div>
-          <div class="grow">
-            <label>Materia</label>
-            <select id="scheduleSubject"></select>
-          </div>
-          <button class="primary" onclick="addSchedule()">Agregar cursado</button>
+      <div class="card section">
+        <h2>Días sin clase</h2>
+        <div class="add-row">
+          <div><label for="exceptionDate">Fecha</label><input id="exceptionDate" type="date"></div>
+          <div><label for="exceptionReason">Motivo</label><input id="exceptionReason" placeholder="Feriado"></div>
         </div>
-        <div id="weekSchedule" class="days"></div>
-      </section>
+        <button class="btn btn-secondary" style="margin-top:10px;width:100%" onclick="addException()">Agregar día sin clase</button>
+        <div id="exceptionsList" style="margin-top:8px"></div>
+      </div>
 
-      <section class="card half">
-        <h2 class="section-title">Días completos sin clase</h2>
-        <div class="toolbar">
-          <div class="grow">
-            <label>Fecha</label>
-            <input id="exceptionDate" type="date">
-          </div>
-          <div class="grow">
-            <label>Motivo</label>
-            <input id="exceptionReason" placeholder="Feriado / suspensión">
-          </div>
-          <button class="primary" onclick="addException()">Excluir día</button>
-        </div>
-        <div id="exceptionsList" class="list"></div>
-      </section>
-
-      <section class="card half">
-        <h2 class="section-title">Datos</h2>
+      <div class="card section">
+        <h2>Datos</h2>
         <p class="note">Tus datos se guardan en este dispositivo y se sincronizan con tu cuenta. Si marcás algo sin conexión, se suben cuando vuelve internet.</p>
-        <button class="danger" onclick="resetAll()">Borrar toda la configuración</button>
-      </section>
+        <div class="data-actions">
+          <button class="btn btn-secondary" onclick="exportData()">Exportar copia</button>
+          <label class="btn btn-secondary" style="margin:0;color:var(--text);font-size:15px">Importar copia<input type="file" accept=".json,application/json" onchange="importData(event)"></label>
+          <button class="btn btn-danger" onclick="resetAll()">Borrar todo</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <div class="tabbar-inner">
+      <button id="tab-week" class="active" onclick="showTab('week')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Semana
+      </button>
+      <button id="tab-subjects" onclick="showTab('subjects')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        Materias
+      </button>
+      <button id="tab-settings" onclick="showTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        Ajustes
+      </button>
     </div>
-  </section>
+  </nav>
 </div>
 
 <script>
 const KEY="asistencia_universitaria_v3";
 const DAYS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-const SHORT=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const DAY_LETTERS=["D","L","M","X","J","V","S"];
+const WEEK_ORDER=[1,2,3,4,5,6,0];
 const sb=window.supabase.createClient("https://alljsidyeocesoabiurw.supabase.co","sb_publishable_Xx4PeUa5v2yY1-YUTD2loQ_BgcLzLA7");
 let currentUser=null, saveTimer=null;
 let state={semester:{start:"",end:""},subjects:[],schedule:[],exceptions:[],classStates:{},classStamps:{},updatedAt:0};
 let weekAnchor=startOfWeek(new Date());
-let detailSubjectId = null;
+let currentTab="week";
+let detailSubjectId=null, detailMonth=null;
 
 const $ = id => document.getElementById(id);
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())}
@@ -444,7 +383,7 @@ function setSyncStatus(t){
   if(!e)return;
   const isError=String(t||"").toLowerCase().includes("error");
   e.textContent=isError?t:"";
-  e.style.display=isError?"inline":"none";
+  e.classList.toggle("hidden",!isError);
 }
 function queueCloudSave(){if(!currentUser)return;setSyncStatus("Guardando…");clearTimeout(saveTimer);saveTimer=setTimeout(saveCloudState,300)}
 async function fetchCloudState(){
@@ -484,7 +423,7 @@ async function loadCloudState(){
   if(pending||!cloud)await saveCloudState();
 }
 window.addEventListener("online",()=>{if(localStorage.getItem(PENDING_KEY))saveCloudState()});
-function esc(s=""){return s.replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
+function esc(s=""){return String(s).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
 function localDate(s){if(!s)return null;const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12)}
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function startOfWeek(d){const x=new Date(d);x.setHours(12,0,0,0);const diff=(x.getDay()+6)%7;x.setDate(x.getDate()-diff);return x}
@@ -500,21 +439,17 @@ function getClassState(date,subjectId){
   // Sin marca, la clase cuenta como presente (también las futuras).
   return state.classStates[classKey(date,subjectId)] || "present";
 }
-function cycleState(date,subjectId){
-  if(!withinSemester(date)) return;
+function setClassState(date,subjectId,next){
+  if(!withinSemester(date)||isException(date)) return;
   const key=classKey(date,subjectId);
-  const current=getClassState(date,subjectId);
-  const next=current==="present"?"absent":current==="absent"?"noclass":"present";
   state.classStates[key]=next;
   state.classStamps[key]=Date.now();
   saveLocal();
-  renderOverview();
-  renderWeek();
-  renderSubjectDetail();
+  renderAll();
   queueCloudSave();
 }
-function stateLabel(st){return st==="present"?"Presente":st==="absent"?"Ausente":"No se dio"}
-function stateClass(st){return st==="present"?"state-present":st==="absent"?"state-absent":"state-noclass"}
+const NEXT_STATE={present:"absent",absent:"noclass",noclass:"present"};
+function cycleState(date,subjectId){setClassState(date,subjectId,NEXT_STATE[getClassState(date,subjectId)])}
 
 function saveSemester(){
   state.semester.start=$("semesterStart").value;
@@ -527,7 +462,7 @@ function addSubject(){
 }
 function removeSubject(id){
   const s=state.subjects.find(x=>x.id===id); if(!s)return;
-  if(!confirm(`¿Eliminar "${s.name}"?`))return;
+  if(!confirm(`¿Eliminar "${s.name}"? Se borran también sus marcas de asistencia.`))return;
   state.subjects=state.subjects.filter(x=>x.id!==id);
   state.schedule=state.schedule.filter(x=>x.subjectId!==id);
   Object.keys(state.classStates).forEach(k=>{if(k.endsWith(`|${id}`))delete state.classStates[k]});
@@ -546,13 +481,12 @@ function updateSubject(id,field,value){
   }
   persist();
 }
-function addSchedule(){
-  const day=Number($("scheduleDay").value),subjectId=$("scheduleSubject").value;
-  if(!subjectId)return;
-  if(state.schedule.some(x=>x.day===day&&x.subjectId===subjectId))return;
-  state.schedule.push({id:uid(),day,subjectId});persist();
+function toggleDay(subjectId,day){
+  const existing=state.schedule.find(x=>x.day===day&&x.subjectId===subjectId);
+  if(existing)state.schedule=state.schedule.filter(x=>x!==existing);
+  else state.schedule.push({id:uid(),day,subjectId});
+  persist();
 }
-function removeSchedule(id){state.schedule=state.schedule.filter(x=>x.id!==id);persist()}
 function addException(){
   const date=$("exceptionDate").value; if(!date)return;
   const reason=$("exceptionReason").value.trim()||"Día sin clase";
@@ -565,7 +499,8 @@ function removeException(id){state.exceptions=state.exceptions.filter(x=>x.id!==
 function scheduledForDate(date){
   const d=localDate(date);
   if(!d || !withinSemester(date)) return [];
-  return state.schedule.filter(x=>x.day===d.getDay()).map(x=>x.subjectId);
+  const ids=state.schedule.filter(x=>x.day===d.getDay()).map(x=>x.subjectId);
+  return state.subjects.filter(s=>ids.includes(s.id)).map(s=>s.id);
 }
 
 function allClassInstances(subjectId){
@@ -591,15 +526,13 @@ function subjectStats(subjectId){
   return {counted:counted.length,present,absent,noclass,pct};
 }
 
-
 function absencesRemainingFor(subjectId, thresholdPct){
   const all = allClassInstances(subjectId);
   const counted = all.filter(x=>x.state!=="noclass");
   const currentAbsent = counted.filter(x=>x.state==="absent").length;
   const total = counted.length;
   if(total===0) return {remaining:0,lost:false};
-
-  // Maximum total absences that still leaves attendance >= threshold.
+  // Máximo de faltas que todavía deja la asistencia >= al porcentaje.
   const maxAbsences = Math.floor((total * (1 - thresholdPct/100)) + 1e-9);
   const remaining = maxAbsences - currentAbsent;
   return {remaining:Math.max(0,remaining),lost:remaining<0};
@@ -607,121 +540,101 @@ function absencesRemainingFor(subjectId, thresholdPct){
 
 // Porcentajes mínimos de cada materia (por defecto 60% regular y 80% promoción).
 function thresholds(s){return {reg:s.reg??60,promo:s.promo??80}}
-function thresholdChips(s){
-  const t=thresholds(s);
-  const reg=absencesRemainingFor(s.id,t.reg), promo=absencesRemainingFor(s.id,t.promo);
+// Rojo si se perdió, amarillo si quedan 2 faltas o menos.
+function levelOf(r){return r.lost?"lost":r.remaining<=2?"warn":"ok"}
+function subjectStatus(s){
+  const t=thresholds(s), st=subjectStats(s.id);
+  return {t,st,reg:absencesRemainingFor(s.id,t.reg),promo:absencesRemainingFor(s.id,t.promo)};
+}
+function chipsHtml(x){
   const faltas=n=>`${n} ${n===1?"falta":"faltas"}`;
-  return `<span class="threshold ${reg.lost?"lost":"ok60"}">${reg.lost?"Regular perdida":`Regular ${faltas(reg.remaining)}`}</span>
-    <span class="threshold ${promo.lost?"lost":"ok80"}">${promo.lost?"Promo perdida":`Promo ${faltas(promo.remaining)}`}</span>`;
+  return `<div class="chips">
+    <span class="chip ${levelOf(x.reg)}">${x.reg.lost?"Regular perdida":`Regular · ${faltas(x.reg.remaining)}`}</span>
+    <span class="chip ${levelOf(x.promo)}">${x.promo.lost?"Promo perdida":`Promo · ${faltas(x.promo.remaining)}`}</span>
+  </div>`;
+}
+function barHtml(x){
+  const fill=x.reg.lost?"lost":x.promo.lost||levelOf(x.promo)==="warn"?"warn":"";
+  return `<div class="bar" title="Marcas: ${x.t.reg}% regular, ${x.t.promo}% promoción">
+    <div class="bar-fill ${fill}" style="width:${Math.min(100,x.st.pct).toFixed(1)}%"></div>
+    <div class="bar-mark" style="left:${x.t.reg}%"></div>
+    <div class="bar-mark" style="left:${x.t.promo}%"></div>
+  </div>`;
+}
+const CHEVRON='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+function subjectHead(s,x){
+  return `<div class="subject-head" onclick="openSubjectDetail('${s.id}')">
+    <div class="subject-name">${esc(s.name)}</div>
+    <div class="subject-pct">${x.st.pct.toFixed(0)}%</div>${CHEVRON}
+  </div>${barHtml(x)}${chipsHtml(x)}`;
+}
+function segHtml(date,id,current){
+  return `<div class="seg" role="group" aria-label="Asistencia">${["present","absent","noclass"].map(v=>
+    `<button class="${v} ${current===v?"on":""}" aria-pressed="${current===v}" onclick="setClassState('${date}','${id}','${v}')">${{present:"Presente",absent:"Ausente",noclass:"No se dio"}[v]}</button>`
+  ).join("")}</div>`;
+}
+
+function renderSummary(){
+  const n=state.subjects.length;
+  let counted=0,present=0,regular=0,promo=0;
+  state.subjects.forEach(s=>{
+    const x=subjectStatus(s);
+    counted+=x.st.counted; present+=x.st.present;
+    if(!x.reg.lost)regular++;
+    if(!x.promo.lost)promo++;
+  });
+  const html=n?`<span class="summary-item"><strong>${(counted?present/counted*100:100).toFixed(0)}%</strong>asistencia</span>
+    <span class="summary-item"><strong>${regular}/${n}</strong>regulares</span>
+    <span class="summary-item"><strong>${promo}/${n}</strong>promocionables</span>`:"";
+  $("summary").innerHTML=html;
+  $("summary2").innerHTML=html;
 }
 
 function renderWeek(){
   const start=weekAnchor, end=addDays(start,6);
-  $("weekTitle").textContent=`${fmtDate(start)} – ${fmtDate(end)}`;
-  const activeDays=[];
-  for(let i=0;i<7;i++){
-    const d=addDays(start,i), key=dateKey(d);
-    const ids=scheduledForDate(key);
-    if(ids.length)activeDays.push({d,key,ids});
-  }
+  $("weekTitle").textContent=`${fmtShort(start)} – ${fmtShort(end)}`;
   const el=$("weekGrid");
   if(!state.semester.start||!state.semester.end){
-    el.innerHTML='<div class="empty">Primero configurá las fechas del semestre.</div>';return;
+    el.innerHTML='<div class="empty">Primero configurá las fechas del semestre.<br><button class="btn btn-primary" onclick="showTab(\'settings\')">Ir a Ajustes</button></div>';return;
   }
-  if(!activeDays.length){
-    el.innerHTML='<div class="empty">No hay materias configuradas para esta semana.</div>';return;
+  if(!state.subjects.length||!state.schedule.length){
+    el.innerHTML='<div class="empty">Agregá tus materias y marcá qué días las cursás.<br><button class="btn btn-primary" onclick="showTab(\'settings\')">Ir a Ajustes</button></div>';return;
   }
-  el.innerHTML=activeDays.map(({d,key,ids})=>{
-    const wholeDayException=isException(key);
-    const todayKey=dateKey(new Date());
-    const isToday=key===todayKey;
-    const isFuture=key>todayKey;
-    return `<article class="day-card ${isToday?"today-card":""} ${isFuture?"future-day":""}">
-      <div class="day-head">
-        <div>
-          <h2>${DAYS[d.getDay()]}${isToday?'<span class="today-badge">HOY</span>':""}</h2>
-          <div class="day-date">${fmtDateLong(d)}</div>
-        </div>
-        ${wholeDayException?'<span class="state-btn state-noclass" style="padding:8px 10px;border-radius:10px;font-size:12px;font-weight:800">Día excluido</span>':""}
+  const todayKey=dateKey(new Date());
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=addDays(start,i), key=dateKey(d), ids=scheduledForDate(key);
+    if(ids.length)days.push({d,key,ids});
+  }
+  if(!days.length){el.innerHTML='<div class="empty">No tenés clases esta semana.</div>';return}
+  el.innerHTML=days.map(({d,key,ids})=>{
+    const off=isException(key), isToday=key===todayKey;
+    const reason=off?state.exceptions.find(x=>x.date===key)?.reason:"";
+    return `<div class="day-group ${isToday?"today":""} ${key>todayKey?"future":""}">
+      <div class="day-label">${DAYS[d.getDay()]} <span class="date">${fmtDay(d)}</span>
+        ${isToday?'<span class="badge badge-today">HOY</span>':""}
+        ${off?`<span class="badge badge-off">${esc(reason)}</span>`:""}
       </div>
-      <div class="classes">
-        ${ids.map(id=>{
-          const s=state.subjects.find(x=>x.id===id); if(!s)return"";
-          const st=getClassState(key,id);
-          const stats = subjectStats(id);
-          return `<div class="class-row">
-            <div class="class-main subject-link" onclick="openSubjectDetail('${id}')">
-              <div class="class-pct">
-                <strong>${stats.pct.toFixed(1)}%</strong>
-                <span>Asistencia</span>
-              </div>
-              <div>
-                <div class="class-name">${esc(s.name)}</div>
-                <div class="class-meta">${wholeDayException?"Este día está excluido globalmente":"Tocá la materia para ver su calendario"}</div>
-                <div class="thresholds">${thresholdChips(s)}</div>
-              </div>
-            </div>
-            <button class="state-btn ${stateClass(st)}" ${wholeDayException?"disabled":""} onclick="cycleState('${key}','${id}')">${stateLabel(st)}</button>
-          </div>`;
-        }).join("")}
-      </div>
-    </article>`;
+      ${ids.map(id=>{
+        const s=state.subjects.find(x=>x.id===id), x=subjectStatus(s);
+        return `<div class="card subject-card">${subjectHead(s,x)}${off?`<div class="off-note">No hay clase: ${esc(reason)}</div>`:segHtml(key,id,getClassState(key,id))}</div>`;
+      }).join("")}
+    </div>`;
   }).join("");
 }
 
-function renderOverview(){
-  let counted=0,present=0;
-  let regular=0,promo=0;
-  const totalSubjects=state.subjects.length;
-  let tightest=null;
-  const warnings=[];
-
-  state.subjects.forEach(s=>{
-    const st=subjectStats(s.id);
-    counted+=st.counted;
-    present+=st.present;
-    const t=thresholds(s);
-    if(st.pct>=t.reg) regular++;
-    if(st.pct>=t.promo) promo++;
-
-    const rm=absencesRemainingFor(s.id,t.reg);
-    const pm=absencesRemainingFor(s.id,t.promo);
-    if(!pm.lost && (!tightest || pm.remaining<tightest.remaining)){
-      tightest={remaining:pm.remaining,name:s.name};
-    }
-
-    const faltas=n=>n===1?"1 falta":`${n} faltas`;
-    if(rm.lost) warnings.push({level:"danger",text:`${s.name}: perdiste la regularidad.`});
-    else if(pm.lost){
-      warnings.push({level:"danger",text:`${s.name}: perdiste la promoción.`});
-      if(rm.remaining===0) warnings.push({level:"warn",text:`${s.name}: no podés faltar más si querés seguir regular.`});
-      else if(rm.remaining<=2) warnings.push({level:"warn",text:`${s.name}: te ${rm.remaining===1?"queda":"quedan"} ${faltas(rm.remaining)} para seguir regular.`});
-    }
-    else if(pm.remaining===0) warnings.push({level:"warn",text:`${s.name}: no podés faltar más si querés promocionar.`});
-    else if(pm.remaining<=2) warnings.push({level:"warn",text:`${s.name}: te ${pm.remaining===1?"queda":"quedan"} ${faltas(pm.remaining)} para mantener la promoción.`});
-  });
-  warnings.sort((a,b)=>(a.level==="danger"?0:1)-(b.level==="danger"?0:1));
-
-  $("overallPct").textContent=(counted?present/counted*100:100).toFixed(1)+"%";
-  $("regularSubjects").textContent=`${regular}/${totalSubjects}`;
-  $("promoSubjects").textContent=`${promo}/${totalSubjects}`;
-
-  if(!totalSubjects){
-    $("tightestPromoMargin").textContent="—";
-    $("tightestPromoLabel").textContent="hasta perder promoción";
-    $("tightestPromoSubject").textContent="";
-  }else if(tightest){
-    $("tightestPromoMargin").textContent=tightest.remaining===1?"1 falta":`${tightest.remaining} faltas`;
-    $("tightestPromoLabel").textContent="hasta perder promoción";
-    $("tightestPromoSubject").textContent=tightest.name;
-  }else{
-    $("tightestPromoMargin").textContent="0 faltas";
-    $("tightestPromoLabel").textContent="promoción perdida";
-    $("tightestPromoSubject").textContent="";
+function renderSubjects(){
+  const el=$("subjectsGrid");
+  if(!state.subjects.length){
+    el.innerHTML='<div class="empty">Todavía no agregaste materias.<br><button class="btn btn-primary" onclick="showTab(\'settings\')">Agregar materias</button></div>';return;
   }
-
-  const box=$("attendanceWarnings");
-  box.innerHTML=warnings.map(w=>`<div class="warning-banner ${w.level==="danger"?"danger":""}">${w.level==="danger"?"✕":"⚠"} ${esc(w.text)}</div>`).join("");
+  el.innerHTML=state.subjects.map(s=>{
+    const x=subjectStatus(s);
+    const days=WEEK_ORDER.filter(d=>state.schedule.some(i=>i.subjectId===s.id&&i.day===d)).map(d=>DAYS[d]).join(", ");
+    return `<div class="card subject-card">${subjectHead(s,x)}
+      <div class="small muted" style="margin-top:8px">${days||"Sin días de cursado"} · ${x.st.present} presentes · ${x.st.absent} ausentes</div>
+    </div>`;
+  }).join("");
 }
 
 function renderSettings(){
@@ -729,148 +642,102 @@ function renderSettings(){
   $("semesterEnd").value=state.semester.end||"";
   $("subjectsList").innerHTML=state.subjects.length?state.subjects.map(s=>{
     const t=thresholds(s);
-    return `<div class="subject-edit">
-      <div class="subject-edit-top">
+    return `<div class="subj-edit">
+      <div class="subj-edit-top">
         <input value="${esc(s.name)}" aria-label="Nombre de la materia" onchange="updateSubject('${s.id}','name',this.value)">
-        <button class="ghost" onclick="removeSubject('${s.id}')">Eliminar</button>
+        <button class="icon-btn" onclick="removeSubject('${s.id}')" aria-label="Eliminar materia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
       </div>
-      <div class="subject-edit-pcts">
+      <div class="days" role="group" aria-label="Días de cursado">${WEEK_ORDER.map(d=>{
+        const on=state.schedule.some(i=>i.subjectId===s.id&&i.day===d);
+        return `<button class="${on?"on":""}" aria-pressed="${on}" title="${DAYS[d]}" onclick="toggleDay('${s.id}',${d})">${DAY_LETTERS[d]}</button>`;
+      }).join("")}</div>
+      <div class="pcts">
         <label>Regular <input type="number" min="0" max="100" value="${t.reg}" onchange="updateSubject('${s.id}','reg',this.value)">%</label>
         <label>Promoción <input type="number" min="0" max="100" value="${t.promo}" onchange="updateSubject('${s.id}','promo',this.value)">%</label>
       </div>
     </div>`;
-  }).join(""):'<div class="empty">Todavía no agregaste materias.</div>';
-
-  $("scheduleDay").innerHTML=[1,2,3,4,5,6,0].map(d=>`<option value="${d}">${DAYS[d]}</option>`).join("");
-  $("scheduleSubject").innerHTML=state.subjects.length?state.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join(""):'<option value="">Primero agregá una materia</option>';
-
-  $("weekSchedule").innerHTML=[1,2,3,4,5,6,0].map(day=>{
-    const items=state.schedule.filter(x=>x.day===day);
-    return `<div class="day-config"><strong>${DAYS[day]}</strong>${items.length?items.map(i=>{
-      const s=state.subjects.find(x=>x.id===i.subjectId);
-      return s?`<div class="pill"><span>${esc(s.name)}</span><button class="ghost" onclick="removeSchedule('${i.id}')">×</button></div>`:"";
-    }).join(""):'<span class="note">Sin clases</span>'}</div>`;
-  }).join("");
+  }).join(""):'<p class="note" style="margin-top:12px">Todavía no agregaste materias.</p>';
 
   const ex=[...state.exceptions].sort((a,b)=>a.date.localeCompare(b.date));
-  $("exceptionsList").innerHTML=ex.length?ex.map(x=>`
+  $("exceptionsList").innerHTML=ex.map(x=>`
     <div class="list-row">
-      <div><strong>${formatDateKey(x.date)}</strong><div class="note">${esc(x.reason)}</div></div>
-      <button class="ghost" onclick="removeException('${x.id}')">Eliminar</button>
-    </div>`).join(""):'<div class="empty">No hay días excluidos.</div>';
+      <div><div>${formatDateKey(x.date)}</div><div class="note">${esc(x.reason)}</div></div>
+      <button class="btn-ghost" onclick="removeException('${x.id}')">Quitar</button>
+    </div>`).join("");
 }
-
 
 function openSubjectDetail(subjectId){
-  detailSubjectId = subjectId;
-  $("homeView").classList.add("hidden");
-  $("settingsView").classList.add("hidden");
-  $("subjectDetailView").classList.remove("hidden");
-  $("tabHome").classList.remove("active");
-  $("tabSettings").classList.remove("active");
+  detailSubjectId=subjectId;
+  ["weekView","subjectsView","settingsView"].forEach(v=>$(v).classList.add("hidden"));
+  $("detailView").classList.remove("hidden");
+  detailMonth=null; // abre en el mes actual
   renderSubjectDetail();
-  window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({top:0});
 }
-
-function closeSubjectDetail(){
-  detailSubjectId = null;
-  $("subjectDetailView").classList.add("hidden");
-  $("homeView").classList.remove("hidden");
-  $("tabHome").classList.add("active");
-  renderWeek();
-  renderOverview();
-}
+function closeSubjectDetail(){detailSubjectId=null;showTab(currentTab)}
 
 function renderSubjectDetail(){
   if(!detailSubjectId) return;
-  const s = state.subjects.find(x=>x.id===detailSubjectId);
+  const s=state.subjects.find(x=>x.id===detailSubjectId);
   if(!s) return closeSubjectDetail();
+  const x=subjectStatus(s);
+  $("detailTitle").textContent=s.name;
+  $("detailBar").innerHTML=barHtml(x)+chipsHtml(x);
+  $("detailPct").textContent=x.st.pct.toFixed(0)+"%";
+  $("detailPresent").textContent=x.st.present;
+  $("detailAbsent").textContent=x.st.absent;
+  $("detailNoClass").textContent=x.st.noclass;
 
-  $("detailSubjectTitle").textContent = s.name;
-  const st = subjectStats(detailSubjectId);
-  $("detailPct").textContent = st.pct.toFixed(1)+"%";
-  $("detailPresent").textContent = st.present;
-  $("detailAbsent").textContent = st.absent;
-  $("detailNoClass").textContent = st.noclass;
-
-  $("detailThresholds").innerHTML = thresholdChips(s);
-
-  const start = localDate(state.semester.start), end = localDate(state.semester.end);
-  const cal = $("subjectCalendar");
-  if(!start || !end || start > end){
-    cal.innerHTML = '<div class="empty">Configurá primero las fechas del semestre.</div>';
-    return;
+  const start=localDate(state.semester.start), end=localDate(state.semester.end), cal=$("detailCalendar");
+  if(!start||!end||start>end){cal.innerHTML='<div class="empty">Configurá primero las fechas del semestre.</div>';return}
+  const todayKey=dateKey(new Date());
+  const first=new Date(start.getFullYear(),start.getMonth(),1,12), last=new Date(end.getFullYear(),end.getMonth(),1,12);
+  if(!detailMonth){
+    const now=new Date(); detailMonth=new Date(now.getFullYear(),now.getMonth(),1,12);
   }
-
-  const months = [];
-  let cursor = new Date(start.getFullYear(), start.getMonth(), 1, 12);
-  const lastMonth = new Date(end.getFullYear(), end.getMonth(), 1, 12);
-  while(cursor <= lastMonth){
-    months.push(new Date(cursor));
-    cursor.setMonth(cursor.getMonth()+1);
-  }
-
-  cal.innerHTML = months.map(monthStart => {
-    const y = monthStart.getFullYear(), m = monthStart.getMonth();
-    const monthName = new Intl.DateTimeFormat("es-AR",{month:"long",year:"numeric"}).format(monthStart);
-    const firstDow = (monthStart.getDay()+6)%7; // Monday 0
-    const daysInMonth = new Date(y,m+1,0).getDate();
-    let cells = [];
-
-    for(let i=0;i<firstDow;i++) cells.push('<div class="cal-day empty-day"></div>');
-
-    for(let day=1; day<=daysInMonth; day++){
-      const d = new Date(y,m,day,12);
-      const key = dateKey(d);
-      const inSemester = withinSemester(key);
-      const scheduled = inSemester && scheduledForDate(key).includes(detailSubjectId);
-
-      if(!scheduled){
-        cells.push(`<div class="cal-day nonclass"><div class="cal-date">${day}</div></div>`);
-        continue;
-      }
-
-      const st = getClassState(key,detailSubjectId);
-      cells.push(`<div class="cal-day">
-        <div class="cal-date">${day}</div>
-        <button class="cal-state ${stateClass(st)}" onclick="cycleState('${key}','${detailSubjectId}')">${stateLabel(st)}</button>
-      </div>`);
+  if(detailMonth<first)detailMonth=first;
+  if(detailMonth>last)detailMonth=last;
+  const ms=detailMonth, y=ms.getFullYear(), m=ms.getMonth();
+  const monthName=new Intl.DateTimeFormat("es-AR",{month:"long",year:"numeric"}).format(ms);
+  const canPrev=ms>first, canNext=ms<last;
+  {
+    const cells=[];
+    for(let i=0;i<(ms.getDay()+6)%7;i++) cells.push('<div></div>');
+    for(let day=1; day<=new Date(y,m+1,0).getDate(); day++){
+      const key=dateKey(new Date(y,m,day,12));
+      if(!scheduledForDate(key).includes(s.id)){cells.push(`<div class="d">${day}</div>`);continue}
+      const st=getClassState(key,s.id);
+      cells.push(`<button class="d ${st} ${key===todayKey?"today":""}" title="${formatDateKey(key)}: ${{present:"Presente",absent:"Ausente",noclass:"No se dio"}[st]}" onclick="cycleState('${key}','${s.id}')">${day}</button>`);
     }
-
-    return `<section class="month-card">
-      <h3 class="month-title">${monthName}</h3>
-      <div class="calendar-grid">
-        ${["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(x=>`<div class="weekday">${x}</div>`).join("")}
-        ${cells.join("")}
+    cal.innerHTML=`<section class="card month">
+      <div class="month-nav">
+        <button class="icon-btn" ${canPrev?"":"disabled"} onclick="changeDetailMonth(-1)" aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h3>${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</h3>
+        <button class="icon-btn" ${canNext?"":"disabled"} onclick="changeDetailMonth(1)" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
+      <div class="cal">${["L","M","X","J","V","S","D"].map(w=>`<div class="wd">${w}</div>`).join("")}${cells.join("")}</div>
     </section>`;
-  }).join("");
+  }
 }
-
-
+function changeDetailMonth(n){detailMonth=new Date(detailMonth.getFullYear(),detailMonth.getMonth()+n,1,12);renderSubjectDetail()}
 
 function changeWeek(n){weekAnchor=addDays(weekAnchor,n);renderWeek()}
 function goCurrentWeek(){weekAnchor=startOfWeek(new Date());renderWeek()}
 function showTab(name){
-  detailSubjectId = null;
-  $("subjectDetailView").classList.add("hidden");
-  $("homeView").classList.toggle("hidden",name!=="home");
+  currentTab=name; detailSubjectId=null;
+  $("detailView").classList.add("hidden");
+  $("weekView").classList.toggle("hidden",name!=="week");
+  $("subjectsView").classList.toggle("hidden",name!=="subjects");
   $("settingsView").classList.toggle("hidden",name!=="settings");
-  $("tabHome").classList.toggle("active",name==="home");
-  $("tabSettings").classList.toggle("active",name==="settings");
+  ["week","subjects","settings"].forEach(t=>$("tab-"+t).classList.toggle("active",t===name));
+  window.scrollTo({top:0});
 }
-function fmtDate(d){return new Intl.DateTimeFormat("es-AR",{day:"2-digit",month:"short"}).format(d)}
-function fmtDateLong(d){return new Intl.DateTimeFormat("es-AR",{day:"2-digit",month:"long",year:"numeric"}).format(d)}
-function formatDateKey(s){const d=localDate(s);return d?fmtDateLong(d):s}
+function fmtShort(d){return new Intl.DateTimeFormat("es-AR",{day:"numeric",month:"short"}).format(d).replace(".","")}
+function fmtDay(d){return new Intl.DateTimeFormat("es-AR",{day:"numeric",month:"long"}).format(d)}
+function formatDateKey(s){const d=localDate(s);return d?new Intl.DateTimeFormat("es-AR",{weekday:"long",day:"numeric",month:"long"}).format(d):s}
 
-
-function toggleMoreMenu(event){
-  event.stopPropagation();
-  $("moreMenu").classList.toggle("hidden");
-}
-function closeMoreMenu(){
-  const m=$("moreMenu"); if(m)m.classList.add("hidden");
-}
+function toggleMoreMenu(event){event.stopPropagation();$("moreMenu").classList.toggle("hidden")}
+function closeMoreMenu(){const m=$("moreMenu"); if(m)m.classList.add("hidden")}
 document.addEventListener("click",e=>{
   const wrap=document.querySelector(".more-wrap");
   if(wrap && !wrap.contains(e.target)) closeMoreMenu();
@@ -895,7 +762,7 @@ function resetAll(){
   if(!confirm("¿Seguro que querés borrar todo?"))return;
   state=emptyState();persist();showTab("settings");
 }
-function renderAll(){renderOverview();renderWeek();renderSettings()}
+function renderAll(){renderSummary();renderWeek();renderSubjects();renderSettings();renderSubjectDetail()}
 function authMsg(t,b=false){const e=$("authMessage");e.textContent=t||"";e.style.color=b?"var(--absent)":"var(--muted)"}
 async function login(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||!password)return authMsg("Ingresá email y contraseña.",true);authMsg("Ingresando…");const {error}=await sb.auth.signInWithPassword({email,password});if(error)authMsg(error.message,true)}
 async function signup(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<6)return authMsg("Usá una contraseña de al menos 6 caracteres.",true);const {data,error}=await sb.auth.signUp({email,password});if(error)return authMsg(error.message,true);authMsg(data.session?"Cuenta creada.":"Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.")}
@@ -919,7 +786,7 @@ async function saveNewPassword(){
   history.replaceState(null,"",location.pathname);
   await applySession({user:data.user});
 }
-async function applySession(session){currentUser=session?.user||null;if(currentUser){$("authShell").style.display="none";$("mainApp").style.display="";setSyncStatus("Cargando…");await loadCloudState()}else{$("mainApp").style.display="none";$("authShell").style.display="";authMsg("")}}
+async function applySession(session){currentUser=session?.user||null;if(currentUser){$("authShell").style.display="none";$("mainApp").style.display="";await loadCloudState()}else{$("mainApp").style.display="none";$("authShell").style.display="";authMsg("")}}
 sb.auth.onAuthStateChange((event,session)=>setTimeout(()=>{
   if(event==="PASSWORD_RECOVERY"){
     recovering=true;
